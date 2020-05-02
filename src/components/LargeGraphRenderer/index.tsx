@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import DeckGL from "@deck.gl/react";
 import { OrthographicView, OrbitView } from "@deck.gl/core";
-import GraphLayer from "../../Layers/GraphLayer";
+import GraphLayer from "../../layers/GraphLayer";
 import RendererProps from "./RendererProps";
 
 const MAIN_VIEW_ID = "deck-main-view";
@@ -37,6 +37,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (
 
     console.log("Zoom level = ", zoom);
     console.log("Full state = ", state);
+    
     if (zoom > 1) {
       setShowLabels(true);
     } else {

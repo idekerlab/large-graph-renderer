@@ -1,31 +1,58 @@
 const path = require("path");
+const webpack = require("webpack");
 const pkg = require("./package.json");
 
 module.exports = {
-  entry: "./src/index.ts",
-
+  mode: "development",
+  devtool: "source-map",
+  context: path.join(__dirname, './src'),
+  
+  // Export all public API from here.
+  entry: "./index.ts",
+  
   output: {
-    path: path.resolve(__dirname, "dist"),
+    path: path.join(__dirname, 'dist'),
     filename: "large-graph-renderer.js",
+    library: "largeGraphRenderer",
+    libraryTarget: "umd"
   },
 
-  mode: "production",
-  devtool: "source-map",
-
   resolve: {
-    // Add ".ts" and ".tsx" as resolvable extensions.
     extensions: [".ts", ".tsx", ".js", ".jsx"],
   },
 
   externals: {
-    react: "React",
-    "deck.gl": "deck",
-    "@deck.gl/aggregation-layers": "deck",
-    "@deck.gl/core": "deck",
-    "@deck.gl/react": "deck",
-    "@deck.gl/extensions": "deck",
-    "@deck.gl/layers": "deck",
-    "@loaders.gl/core": "loaders",
+    react: {
+      commonjs: "react",
+      commonjs2: "react",
+      amd: "react",
+      root: "React",
+    },
+    "react-dom": {
+      root: "ReactDOM",
+      commonjs2: "react-dom",
+      commonjs: "react-dom",
+      amd: "react-dom",
+    },
+    '@deck.gl/core': {
+      root: "DeckGL",
+      commonjs2: "deck.gl",
+      commonjs: "deck.gl",
+      amd: "deck.gl",
+    },
+    '@deck.gl/layers': {
+      root: "DeckGL",
+      commonjs2: "deck.gl",
+      commonjs: "deck.gl",
+      amd: "deck.gl",
+    },
+    '@luma.gl/core': {
+      root: "luma",
+      commonjs2: "luma",
+      commonjs: "luma",
+      amd: "luma",
+    }
+
   },
   module: {
     rules: [
@@ -46,4 +73,5 @@ module.exports = {
       },
     ],
   },
+  plugins: [new webpack.NamedModulesPlugin()],
 };
