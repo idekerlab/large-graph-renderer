@@ -1,5 +1,5 @@
 type ViewModel = {
-    id: string
+  id: string
 } | null
 
 export default ViewModel
