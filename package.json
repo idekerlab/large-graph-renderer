@@ -1,10 +1,9 @@
 {
   "name": "large-graph-renderer",
-  "description": "LGR: Simple large graph rendering engine based on Deck.gl",
+  "description": "LGR: simple graph rendering engine for large graph data based on Deck.gl",
   "version": "0.1.0",
-  "author": "Keiichiro Ono",
+  "author": "Keiichiro Ono <kono@ucsd.edu>",
   "license": "MIT",
-  "private": true,
   "keywords": [
     "graph",
     "visualization",
@@ -14,6 +13,10 @@
     "dist/*",
     "src/*"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/idekerlab/large-graph-renderer.git"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "module": "dist/index.js",
