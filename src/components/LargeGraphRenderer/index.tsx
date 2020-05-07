@@ -2,12 +2,13 @@ import React, {useState} from 'react'
 import DeckGL from '@deck.gl/react'
 import {OrthographicView, OrbitView} from '@deck.gl/core'
 import GraphLayer from '../../layers/GraphLayer'
+import GraphLayerProps from '../../layers/GraphLayerProps'
 import RendererProps from './RendererProps'
 
-const MAIN_VIEW_ID = 'deck-main-view'
+const MAIN_VIEW_ID = 'lgr'
 
 const baseStyle = {
-  backgroundColor: '#222222',
+  backgroundColor: '#000000',
   position: 'relative'
 }
 
@@ -18,11 +19,22 @@ const INITIAL_VIEW_STATE = {
   maxZoom: 10
 }
 
+
+const DEF_EVENT_HANDLER = {
+  onNodeClick: event => {
+
+  },
+  onEdgeClick: event => {
+
+  }
+}
+
 /**
  * Functional React component for large graph rendering using Deck.gl
  */
 const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (props: RendererProps) => {
   const {setSelectedNode, setSelectedEdge, graphView, render3d} = props
+
 
   // UI states
   const [showEdges, setShowEdges] = useState(true)
@@ -57,7 +69,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (props: Rende
     }
   }
 
-  const layerProps = {
+  const layerProps: GraphLayerProps = {
     graphView,
     setSelectedNode,
     setSelectedEdge,
@@ -65,6 +77,8 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (props: Rende
     showLabels,
     render3d
   }
+
+  console.log('Creating GL:', layerProps)
   const layers = [new GraphLayer(layerProps)]
   let view = new OrthographicView()
   if (render3d) {
@@ -113,4 +127,4 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (props: Rende
   )
 }
 
-export {LargeGraphRenderer}
+export default LargeGraphRenderer

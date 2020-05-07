@@ -65,7 +65,7 @@ const get3DLayer = (
     highlightColor: [255, 0, 0]
   })
 
-const createEdgeLayer = (edgeViews, nodeViewMap, render3d, showEdges) => {
+const createEdgeLayer = (edgeViews: EdgeView[], nodeViewMap, render3d, showEdges) => {
   if (render3d) {
     return get3DLayer(edgeViews, nodeViewMap, showEdges)
   } else {

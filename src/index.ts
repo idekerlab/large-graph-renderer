@@ -1,5 +1,5 @@
 // React component
-export {LargeGraphRenderer} from './components/LargeGraphRenderer'
+export {default as LargeGraphRenderer} from './components/LargeGraphRenderer'
 
 // Property for
 export {default as RendererProps} from './components/LargeGraphRenderer/RendererProps'

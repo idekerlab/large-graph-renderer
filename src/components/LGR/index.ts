@@ -8,8 +8,10 @@ const INITIAL_VIEW_STATE = {
   zoom: 15
 }
 
-const deckgl = new Deck({
+const LGR = new Deck({
   initialViewState: INITIAL_VIEW_STATE,
   controller: true,
   layers: []
 })
+
+export default LGR

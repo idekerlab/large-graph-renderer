@@ -1,16 +1,12 @@
-import {CompositeLayer} from '@deck.gl/core'
+import {CompositeLayer, LayerProps} from '@deck.gl/core'
 import {createNodeLayer} from './NodeLayer'
 import {createEdgeLayer} from './EdgeLayer'
 import {createLabelLayer} from './LabelLayer'
 import EdgeView from '../model/EdgeView'
+import GraphView from '../model/GraphView'
+import GraphLayerProps from './GraphLayerProps'
 
-const HIGHLIGHT_COLOR = [255, 0, 0, 255]
-
-const _handleSelectNode = (selection) => {
-  console.log('**Update node selection:', selection)
-}
-
-const getLayers = (edgeViews) => {
+const getLayers = (edgeViews: EdgeView[]): EdgeView[] => {
   const edgeCount = edgeViews.size
   const evs = [...edgeViews.values()]
 
@@ -31,14 +27,17 @@ const getLayers = (edgeViews) => {
   return [layer1, layer2]
 }
 
-class GraphLayer extends CompositeLayer {
-  constructor(props) {
+class GraphLayer extends CompositeLayer<GraphLayerProps> {
+  constructor(props: GraphLayerProps) {
     super(props)
+    console.log('PROPS create##########', props, super.props, this)
   }
 
-  getPickingInfo(pickingInfo) {
+  getPickingInfo(pickingInfo): void {
     const {mode, info} = pickingInfo
-    const {setSelectedNode, setSelectedEdge} = super.props
+
+    // @ts-ignore
+    const {setSelectedNode, setSelectedEdge} = this.props
     if (mode === 'query') {
       console.log('Selection::', pickingInfo)
       setSelectedNode(info.object)
@@ -46,17 +45,17 @@ class GraphLayer extends CompositeLayer {
     }
   }
 
-  renderLayers() {
-    const {graphView, showEdges, showLabels, render3d} = super.props
+  renderLayers(): any[] {
+    // @ts-ignore
+    const {graphView, showEdges, showLabels, render3d} = this.props
     const {nodeViews, edgeViews} = graphView
 
     const t0 = performance.now()
-
     const nodeLayer = createNodeLayer(nodeViews)
     const nodeLabelLayer = createLabelLayer(nodeViews, showLabels)
 
-    const eLayers = getLayers(edgeViews)
-    const edgeLayer = createEdgeLayer(eLayers[0], nodeViews, render3d, showEdges)
+    // const eLayers = getLayers(edgeViews)
+    const edgeLayer = createEdgeLayer([...edgeViews.values()], nodeViews, render3d, showEdges)
 
     console.log('Graph Layer created.  E count = ', edgeViews.size, performance.now() - t0)
     return [edgeLayer, nodeLayer, nodeLabelLayer]
