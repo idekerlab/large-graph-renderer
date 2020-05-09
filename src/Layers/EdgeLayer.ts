@@ -1,14 +1,13 @@
-import {LayerProps, LineLayer, ArcLayer} from '@deck.gl/layers'
-import EdgeView from '../model/EdgeView'
-import NodeView from '../model/NodeView'
+import {LineLayer, ArcLayer} from '@deck.gl/layers'
+import EdgeView from '../models/EdgeView'
+import NodeView from '../models/NodeView'
 
-const get2DLayer = (
+const create2DLayer = (
   edgeViews: EdgeView[],
   nodeViewMap: Map<string, NodeView>,
   showEdges: boolean
-) =>
+): object =>
   new LineLayer({
-    id: `edge-layer`,
     data: edgeViews,
     getSourcePosition: (e: EdgeView) => {
       const s = nodeViewMap.get(e.s)
@@ -33,7 +32,7 @@ const get2DLayer = (
     highlightColor: [255, 0, 0]
   })
 
-const get3DLayer = (
+const create3DLayer = (
   edgeViews: EdgeView[],
   nodeViewMap: Map<string, NodeView>,
   showEdges: boolean
@@ -67,9 +66,9 @@ const get3DLayer = (
 
 const createEdgeLayer = (edgeViews: EdgeView[], nodeViewMap, render3d, showEdges) => {
   if (render3d) {
-    return get3DLayer(edgeViews, nodeViewMap, showEdges)
+    return create3DLayer(edgeViews, nodeViewMap, showEdges)
   } else {
-    return get2DLayer(edgeViews, nodeViewMap, showEdges)
+    return create2DLayer(edgeViews, nodeViewMap, showEdges)
   }
 }
 

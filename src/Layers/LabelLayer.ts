@@ -1,7 +1,7 @@
 import {TextLayer} from '@deck.gl/layers'
 
-import NodeView from '../model/NodeView'
-import EdgeView from '../model/EdgeView'
+import NodeView from '../models/NodeView'
+import EdgeView from '../models/EdgeView'
 
 const createLabelLayer = (nodeViewMap: Map<string, NodeView>, showLabels: boolean): object => {
   const nodeViews: NodeView[] = Array.from(nodeViewMap.values())
@@ -12,7 +12,7 @@ const createLabelLayer = (nodeViewMap: Map<string, NodeView>, showLabels: boolea
     pickable: false,
     getPosition: (d: NodeView) => [d.position[0], d.position[1]],
     getText: (d) => d.label,
-    getSize: d => d.fontSize,
+    getSize: (d) => d.fontSize,
     getColor: [250, 250, 250, 200],
     getAngle: 0,
     sizeScale: 1,

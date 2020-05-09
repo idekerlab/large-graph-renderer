@@ -22,16 +22,28 @@ const emptyEdges = new Map<string, EdgeView>();
 // Medium
 const DEF_SUID = '876e7b0d-88a4-11ea-8503-525400c25d22'
 
+// Fan's network
+const FAN1 = 'a0a1b030-917a-11ea-be39-525400c25d22'
+
 const App: React.FC = () => {
-  const [selectedNetwork, setSelectedNetwork] = useState(DEF_SUID);
+  const [selectedNetwork, setSelectedNetwork] = useState(FAN1);
   const [render3d, setRender3d] = useState(false);
   const [data, setData] = useState<GraphView | null>(null);
-  const [error, setError] = useState({});
   const [loading, setLoading] = useState(false);
   const [selectedNode, setSelectedNode] = useState();
   const [selectedEdge, setSelectedEdge] = useState();
 
   console.log("* New UUID:", selectedNetwork);
+
+  const _handleNodeClick = (event: object): void => {
+    console.log("Node click event:", event);
+    // setSelectedNode(node)
+  }
+  
+  const _handleEdgeClick = (event: object): void => {
+    console.log("Edge click event:", event);
+    // setSelectedNode(node)
+  }
 
   const dataUrl = BASE_URL + selectedNetwork;
 
@@ -52,8 +64,7 @@ const App: React.FC = () => {
             setLoading(false);
           })
           .catch((err) => {
-            console.log("* Data fetch error:", err);
-            setError(err);
+            console.error("* Data fetch error:", err);
             setLoading(false);
           });
       };
@@ -69,8 +80,8 @@ const App: React.FC = () => {
       ) : (
         <LargeGraphRenderer
           graphView={data}
-          setSelectedNode={setSelectedNode}
-          setSelectedEdge={setSelectedEdge}
+          onNodeClick={_handleNodeClick}
+          onEdgeClick={_handleEdgeClick}
           render3d={render3d}
         />
       )}

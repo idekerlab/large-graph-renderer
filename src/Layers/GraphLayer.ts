@@ -2,8 +2,8 @@ import {CompositeLayer, LayerProps} from '@deck.gl/core'
 import {createNodeLayer} from './NodeLayer'
 import {createEdgeLayer} from './EdgeLayer'
 import {createLabelLayer} from './LabelLayer'
-import EdgeView from '../model/EdgeView'
-import GraphView from '../model/GraphView'
+import EdgeView from '../models/EdgeView'
+import GraphView from '../models/GraphView'
 import GraphLayerProps from './GraphLayerProps'
 
 const getLayers = (edgeViews: EdgeView[]): EdgeView[] => {
@@ -37,11 +37,13 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
     const {mode, info} = pickingInfo
 
     // @ts-ignore
-    const {setSelectedNode, setSelectedEdge} = this.props
+    // const {setSelectedNode, setSelectedEdge} = this.props
+    console.log('* Selection::', pickingInfo, this.props.eventHandlers)
     if (mode === 'query') {
-      console.log('Selection::', pickingInfo)
-      setSelectedNode(info.object)
-      setSelectedEdge(info.object)
+      // setSelectedNode(info.object)
+      // setSelectedEdge(info.object)
+    } else {
+      this.props.eventHandlers.onNodeMouseover(info)
     }
   }
 

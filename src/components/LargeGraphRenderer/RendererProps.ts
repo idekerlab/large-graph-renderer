@@ -1,15 +1,22 @@
-import GraphView from '../../model/GraphView'
+import GraphView from '../../models/GraphView'
 
 interface RendererProps {
+  // Graph view data
   graphView: GraphView
-  setSelectedNode: Function
-  setSelectedEdge: Function
+
+  // Optional: Rendering mode (2D or 3D)
   render3d?: boolean
+
+  // Optional: Event Handlers
   onNodeClick?: Function
   onEdgeClick?: Function
   onBackgroundClick?: Function
   onNodeMouseover?: Function
   onEdgeMouseover?: Function
+
+  // TODO: how should this handle command, such as "fit content??"
+
+  //taskRunner?: object
 }
 
 export default RendererProps

@@ -1,5 +1,5 @@
 import {ScatterplotLayer} from '@deck.gl/layers'
-import NodeView from '../model/NodeView'
+import NodeView from '../models/NodeView'
 
 const DEFAULTS = {
   highlightColor: [255, 0, 0],
@@ -8,6 +8,11 @@ const DEFAULTS = {
   radiusMaxPixels: 100
 }
 
+/**
+ * Create new
+ *
+ * @param nodeViewMap - Key-value pair for node views.  Key is ID of view
+ */
 const createNodeLayer = (nodeViewMap: Map<string, NodeView>): object => {
   const nodeViews: NodeView[] = Array.from(nodeViewMap.values())
 

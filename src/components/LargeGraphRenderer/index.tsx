@@ -4,6 +4,7 @@ import {OrthographicView, OrbitView} from '@deck.gl/core'
 import GraphLayer from '../../layers/GraphLayer'
 import GraphLayerProps from '../../layers/GraphLayerProps'
 import RendererProps from './RendererProps'
+import EventHandlers from '../../layers/EventHandlers'
 
 const MAIN_VIEW_ID = 'lgr'
 
@@ -19,24 +20,33 @@ const INITIAL_VIEW_STATE = {
   maxZoom: 10
 }
 
-
-const DEF_EVENT_HANDLER = {
-  onNodeClick: event => {
-
+const DEF_EVENT_HANDLER: EventHandlers = {
+  onNodeClick: (event): void => {},
+  onEdgeClick: (event): void => {},
+  onNodeMouseover: (event): void => {
+    // console.log('* Mouse over: node', event)
   },
-  onEdgeClick: event => {
-
-  }
+  onEdgeMouseover: (event): void => {
+    // console.log('* Mouse over: edge', event)
+  },
+  onBackgroundClick: (event): void => {}
 }
 
 /**
  * Functional React component for large graph rendering using Deck.gl
  */
 const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (props: RendererProps) => {
-  const {setSelectedNode, setSelectedEdge, graphView, render3d} = props
+  const {
+    graphView,
+    render3d,
+    onNodeClick,
+    onEdgeClick,
+    onBackgroundClick,
+    onNodeMouseover,
+    onEdgeMouseover
+  } = props
 
-
-  // UI states
+  // For performance, show/hide edges/labels dynamically
   const [showEdges, setShowEdges] = useState(true)
   const [showLabels, setShowLabels] = useState(false)
 
@@ -69,16 +79,25 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (props: Rende
     }
   }
 
-  const layerProps: GraphLayerProps = {
-    graphView,
-    setSelectedNode,
-    setSelectedEdge,
-    showEdges,
-    showLabels,
-    render3d
+  const eventHandlers: EventHandlers = {
+    onNodeClick: onNodeClick === undefined ? DEF_EVENT_HANDLER.onNodeClick : onNodeClick,
+    onEdgeClick: onEdgeClick === undefined ? DEF_EVENT_HANDLER.onEdgeClick : onEdgeClick,
+    onBackgroundClick:
+      onBackgroundClick === undefined ? DEF_EVENT_HANDLER.onBackgroundClick : onBackgroundClick,
+    onNodeMouseover:
+      onNodeMouseover === undefined ? DEF_EVENT_HANDLER.onNodeMouseover : onNodeMouseover,
+    onEdgeMouseover:
+      onEdgeMouseover === undefined ? DEF_EVENT_HANDLER.onEdgeMouseover : onEdgeMouseover
   }
 
-  console.log('Creating GL:', layerProps)
+  const layerProps: GraphLayerProps = {
+    graphView,
+    showEdges,
+    showLabels,
+    render3d: render3d === undefined ? false : render3d,
+    eventHandlers
+  }
+
   const layers = [new GraphLayer(layerProps)]
   let view = new OrthographicView()
   if (render3d) {
@@ -86,7 +105,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (props: Rende
   }
 
   const _handleClick = (layer, object) => {
-    console.log('CLICK 2::', layer, object)
+    console.log('CLICK BG::', layer, object)
 
     // Fit content
 

@@ -5,14 +5,10 @@ export {default as LargeGraphRenderer} from './components/LargeGraphRenderer'
 export {default as RendererProps} from './components/LargeGraphRenderer/RendererProps'
 
 // Factory to create data model for the renderer
-export {default as GraphViewFactory} from './model/GraphViewFactory'
+export {default as GraphViewFactory} from './models/GraphViewFactory'
 
-// Data Models
-
-// export { default as NodeView } from "./model/NodeView"
-export {default as ViewModel} from './model/ViewModel'
-export {default as NodeView} from './model/NodeView'
-export {default as EdgeView} from './model/EdgeView'
-export {default as GraphView} from './model/GraphView'
-
-// Custom Layers
+// Data Models: All of these are TS types
+export {default as ViewModel} from './models/ViewModel'
+export {default as NodeView} from './models/NodeView'
+export {default as EdgeView} from './models/EdgeView'
+export {default as GraphView} from './models/GraphView'
