@@ -3,29 +3,28 @@ import {createNodeLayer} from './NodeLayer'
 import {createEdgeLayer} from './EdgeLayer'
 import {createLabelLayer} from './LabelLayer'
 import EdgeView from '../models/EdgeView'
-import GraphView from '../models/GraphView'
 import GraphLayerProps from './GraphLayerProps'
 
-const getLayers = (edgeViews: EdgeView[]): EdgeView[] => {
-  const edgeCount = edgeViews.size
-  const evs = [...edgeViews.values()]
+// const getLayers = (edgeViews: EdgeView[]): EdgeView[] => {
+//   const edgeCount = edgeViews.length
+//   const evs = [...edgeViews.values()]
 
-  let idx = 0
+//   let idx = 0
 
-  const layer1: EdgeView[] = []
-  const layer2: EdgeView[] = []
+//   const layer1: EdgeView[] = []
+//   const layer2: EdgeView[] = []
 
-  while (idx < edgeCount) {
-    const ev = evs[idx]
-    if (idx % 2 === 0) {
-      layer1.push(ev)
-    } else {
-      layer2.push(ev)
-    }
-    idx++
-  }
-  return [layer1, layer2]
-}
+//   while (idx < edgeCount) {
+//     const ev = evs[idx]
+//     if (idx % 2 === 0) {
+//       layer1.push(ev)
+//     } else {
+//       layer2.push(ev)
+//     }
+//     idx++
+//   }
+//   return [layer1, layer2]
+// }
 
 class GraphLayer extends CompositeLayer<GraphLayerProps> {
   constructor(props: GraphLayerProps) {
@@ -43,6 +42,7 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
       // setSelectedNode(info.object)
       // setSelectedEdge(info.object)
     } else {
+      // @ts-ignore
       this.props.eventHandlers.onNodeMouseover(info)
     }
   }
