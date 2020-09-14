@@ -22,15 +22,13 @@
   "module": "dist/index.js",
   "peerDependencies": {
     "react": ">=16.13.1",
-    "react-dom": ">=16.13.1"
+    "react-dom": ">=16.13.1",
+    "cx-viz-converter": "^0.0.0"
   },
   "dependencies": {
     "@deck.gl/core": "^8.1.4",
     "@deck.gl/layers": "^8.1.4",
-    "@deck.gl/react": "^8.1.4",
-    "cx-viz-converter": "^0.0.0",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "@deck.gl/react": "^8.1.4"
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",
