@@ -6,6 +6,7 @@
 type ViewModel = {
   // ID of the model (required)
   id: string
+  selected?: boolean
 }
 
 export default ViewModel

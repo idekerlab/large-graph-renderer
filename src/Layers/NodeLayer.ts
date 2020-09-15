@@ -13,16 +13,18 @@ const DEFAULTS = {
  *
  * @param nodeViewMap - Key-value pair for node views.  Key is ID of view
  */
-const createNodeLayer = (nodeViewMap: Map<string, NodeView>): object => {
-  const nodeViews: NodeView[] = Array.from(nodeViewMap.values())
-
+const createNodeLayer = (nodeViews: NodeView[]): object => {
   return new ScatterplotLayer({
     data: nodeViews,
     getPosition: (d: NodeView): number[] => [d.position[0], d.position[1]],
-    getColor: (d: NodeView): [number, number, number, number?] | undefined => d.color,
+    getColor: (d: NodeView): [number, number, number, number?] | undefined =>
+      d.selected ? [0, 0, 255, 255] : d.color,
     getRadius: (d: NodeView): number => (d.size ? d.size : 1),
     pickable: true,
-    autoHighlight: true,
+    updateTriggers: {
+      getColor: nodeViews ? nodeViews[0] : null
+    },
+    // autoHighlight: true,
     highlightColor: DEFAULTS.highlightColor,
     radiusScale: DEFAULTS.radiusScale,
     radiusMinPixels: DEFAULTS.radiusMinPixels,

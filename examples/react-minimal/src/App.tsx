@@ -36,13 +36,17 @@ const App: React.FC = () => {
   console.log("* New UUID:", selectedNetwork);
 
   const _handleNodeClick = (event: object): void => {
-    console.log("Node click event:", event);
+    console.log("################ Node click event:", event);
     // setSelectedNode(node)
   }
   
   const _handleEdgeClick = (event: object): void => {
-    console.log("Edge click event:", event);
+    console.log("!!!!!!!!!!!! ext Edge click event:", event);
     // setSelectedNode(node)
+  }
+  
+  const _handleBackgroundClick = (event: object): void => {
+    console.log("!!!!!!!!!!!! BG click event:", event);
   }
 
   const dataUrl = BASE_URL + selectedNetwork;
@@ -82,6 +86,7 @@ const App: React.FC = () => {
           graphView={data}
           onNodeClick={_handleNodeClick}
           onEdgeClick={_handleEdgeClick}
+          onBackgroundClick={_handleBackgroundClick}
           render3d={render3d}
         />
       )}

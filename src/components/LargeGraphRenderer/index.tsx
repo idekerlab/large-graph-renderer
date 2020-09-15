@@ -21,7 +21,9 @@ const INITIAL_VIEW_STATE = {
 }
 
 const DEF_EVENT_HANDLER: EventHandlers = {
-  onNodeClick: (event): void => {},
+  onNodeClick: (event): void => {
+    console.log('* Default click handler: node', event)
+  },
   onEdgeClick: (event): void => {},
   onNodeMouseover: (event): void => {
     // console.log('* Mouse over: node', event)
@@ -29,7 +31,9 @@ const DEF_EVENT_HANDLER: EventHandlers = {
   onEdgeMouseover: (event): void => {
     // console.log('* Mouse over: edge', event)
   },
-  onBackgroundClick: (event): void => {}
+  onBackgroundClick: (event): void => {
+    console.log('-------------------------- BG')
+  }
 }
 
 /**
@@ -55,8 +59,8 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (props: Rende
     const {zoom} = viewState
     const {isZooming} = interactionState
 
-    console.log('Zoom level = ', zoom)
-    console.log('Full state = ', state)
+    // console.log('Zoom level = ', zoom)
+    // console.log('Full state = ', state)
 
     if (zoom > 1) {
       setShowLabels(true)
@@ -105,7 +109,12 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (props: Rende
   }
 
   const _handleClick = (layer, object) => {
-    console.log('CLICK BG::', layer, object)
+    console.log('!!!!!!!!!!!!!!!!!!!TOPP--------------------Handling click LAYER::', layer, object)
+    // console.log('Handling click OBJ::--------------------', object, bgClick)
+    const bgHandler = eventHandlers.onBackgroundClick
+    if (bgHandler !== undefined) {
+      bgHandler(layer, object)
+    }
 
     // Fit content
 

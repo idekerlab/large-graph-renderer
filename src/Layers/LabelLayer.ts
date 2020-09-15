@@ -16,7 +16,7 @@ const createLabelLayer = (nodeViewMap: Map<string, NodeView>, showLabels: boolea
     getColor: [250, 250, 250, 200],
     getAngle: 0,
     sizeScale: 1,
-    sizeMinPixels: 3,
+    sizeMinPixels: 6,
     getTextAnchor: 'middle',
     getAlignmentBaseline: 'center',
     visible: showLabels
