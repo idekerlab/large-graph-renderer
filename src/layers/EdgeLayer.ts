@@ -1,4 +1,5 @@
 import {LineLayer, ArcLayer} from '@deck.gl/layers'
+
 import EdgeView from '../models/EdgeView'
 import NodeView from '../models/NodeView'
 
@@ -7,6 +8,7 @@ const create2DLayer = (
   nodeViewMap: Map<string, NodeView>,
   showEdges: boolean
 ): object =>
+
   new LineLayer({
     data: edgeViews,
     getSourcePosition: (e: EdgeView) => {

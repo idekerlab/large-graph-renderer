@@ -2,13 +2,10 @@ import {CompositeLayer, LayerProps} from '@deck.gl/core'
 import {createNodeLayer} from './NodeLayer'
 import {createEdgeLayer} from './EdgeLayer'
 import {createLabelLayer} from './LabelLayer'
-import EdgeView from '../models/EdgeView'
-import GraphView from '../models/GraphView'
-import NodeView from '../models/NodeView'
 import GraphLayerProps from './GraphLayerProps'
 
 // const getLayers = (edgeViews: EdgeView[]): EdgeView[] => {
-//   const edgeCount = edgeViews.size
+//   const edgeCount = edgeViews.length
 //   const evs = [...edgeViews.values()]
 
 //   let idx = 0
@@ -60,7 +57,8 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
         info.object.selected = true
       }
     } else {
-      currentProps.eventHandlers.onNodeMouseover(info)
+      // @ts-ignore
+      this.props.eventHandlers.onNodeMouseover(info)
     }
     return info
   }
