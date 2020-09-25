@@ -50,10 +50,10 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
 
       console.log()
       if (isNode) {
-        onNodeClick(info.object)
+        onNodeClick(info.object, info.x, info.y)
         info.object.selected = true
       } else {
-        onEdgeClick(info.object)
+        onEdgeClick(info.object, info.x, info.y)
         info.object.selected = true
       }
     } else {

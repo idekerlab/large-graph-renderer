@@ -21,10 +21,12 @@ const INITIAL_VIEW_STATE = {
 }
 
 const DEF_EVENT_HANDLER: EventHandlers = {
-  onNodeClick: (event): void => {
-    console.log('* Default click handler: node', event)
+  onNodeClick: (event, x, y): void => {
+    console.log('* Default click handler: node', event, x, y)
   },
-  onEdgeClick: (event): void => {},
+  onEdgeClick: (event, x, y): void => {
+    console.log('* Default click handler: edge', event, x, y)
+  },
   onNodeMouseover: (event): void => {
     // console.log('* Mouse over: node', event)
   },
@@ -56,7 +58,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (props: Rende
 
   const _handleViewStateChange = (state) => {
     const {viewState, interactionState} = state
-    const {zoom} = viewState
+    const {zoom, target} = viewState
     const {isZooming} = interactionState
 
     // console.log('Zoom level = ', zoom)
