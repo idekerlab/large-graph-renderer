@@ -6,10 +6,10 @@ import GraphLayerProps from '../../layers/GraphLayerProps'
 import RendererProps from './RendererProps'
 import EventHandlers from '../../layers/EventHandlers'
 
-const MAIN_VIEW_ID = 'lgr'
+const DEF_BG_COLOR = '#555555'
 
 const baseStyle = {
-  backgroundColor: '#000000',
+  backgroundColor: DEF_BG_COLOR,
   position: 'relative'
 }
 
@@ -34,23 +34,24 @@ const DEF_EVENT_HANDLER: EventHandlers = {
     // console.log('* Mouse over: edge', event)
   },
   onBackgroundClick: (event): void => {
-    console.log('-------------------------- BG')
+    console.log('* BG click event')
   }
 }
 
 /**
  * Functional React component for large graph rendering using Deck.gl
  */
-const LargeGraphRenderer: React.FunctionComponent<RendererProps> = (props: RendererProps) => {
-  const {
-    graphView,
-    render3d,
-    onNodeClick,
-    onEdgeClick,
-    onBackgroundClick,
-    onNodeMouseover,
-    onEdgeMouseover
-  } = props
+const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
+  graphView,
+  render3d,
+  onNodeClick,
+  onEdgeClick,
+  onBackgroundClick,
+  onNodeMouseover,
+  onEdgeMouseover,
+  backgroundColor = DEF_BG_COLOR
+}: RendererProps) => {
+  baseStyle.backgroundColor = backgroundColor
 
   // For performance, show/hide edges/labels dynamically
   const [showEdges, setShowEdges] = useState(true)

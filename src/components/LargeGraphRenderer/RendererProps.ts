@@ -17,6 +17,7 @@ interface RendererProps {
   // TODO: how should this handle command, such as "fit content??"
 
   //taskRunner?: object
+  backgroundColor?: string
 }
 
 export default RendererProps
