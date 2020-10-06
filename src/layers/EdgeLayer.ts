@@ -25,11 +25,11 @@ const create2DLayer = (
       }
       return [t.position[0], t.position[1]]
     },
-    getColor: (e) => e.color,
-    strokeWidth: 1,
+    getColor: (e) => (e.color ? e.color : [100, 100, 100, 200]),
+    strokeWidth: (e: EdgeView) => (e.width ? e.width : 1),
     visible: showEdges,
     pickable,
-    widthScale: 2,
+    widthScale: 1,
     autoHighlight: true,
     highlightColor: [255, 0, 0]
   })

@@ -3,9 +3,9 @@ import NodeView from '../models/NodeView'
 
 const DEFAULTS = {
   highlightColor: [255, 0, 0],
-  radiusScale: 0.3,
+  radiusScale: 0.7,
   radiusMinPixels: 1,
-  radiusMaxPixels: 200
+  radiusMaxPixels: 1000
 }
 
 /**
@@ -24,7 +24,7 @@ const createNodeLayer = (nodeViews: NodeView[], pickable = true): object => {
     updateTriggers: {
       getColor: nodeViews ? nodeViews[0] : null
     },
-    // autoHighlight: true,
+    autoHighlight: true,
     highlightColor: DEFAULTS.highlightColor,
     radiusScale: DEFAULTS.radiusScale,
     radiusMinPixels: DEFAULTS.radiusMinPixels,
