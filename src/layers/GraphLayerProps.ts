@@ -7,6 +7,7 @@ type GraphLayerProps = {
   showLabels: boolean
   render3d: boolean
   eventHandlers: EventHandlers
+  pickable?: boolean
 }
 
 export default GraphLayerProps

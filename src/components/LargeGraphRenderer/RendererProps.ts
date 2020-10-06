@@ -17,7 +17,12 @@ interface RendererProps {
   // TODO: how should this handle command, such as "fit content??"
 
   //taskRunner?: object
+
+  // Optional: Background color for the network
   backgroundColor?: string
+
+  // Optional: pickable or not
+  pickable?: boolean
 }
 
 export default RendererProps

@@ -6,9 +6,9 @@ import NodeView from '../models/NodeView'
 const create2DLayer = (
   edgeViews: EdgeView[],
   nodeViewMap: Map<string, NodeView>,
-  showEdges: boolean
+  showEdges: boolean,
+  pickable: boolean
 ): object =>
-
   new LineLayer({
     data: edgeViews,
     getSourcePosition: (e: EdgeView) => {
@@ -28,7 +28,7 @@ const create2DLayer = (
     getColor: (e) => e.color,
     strokeWidth: 1,
     visible: showEdges,
-    pickable: true,
+    pickable,
     widthScale: 2,
     autoHighlight: true,
     highlightColor: [255, 0, 0]
@@ -37,7 +37,8 @@ const create2DLayer = (
 const create3DLayer = (
   edgeViews: EdgeView[],
   nodeViewMap: Map<string, NodeView>,
-  showEdges: boolean
+  showEdges: boolean,
+  pickable: boolean
 ) =>
   new ArcLayer({
     id: `edge-layer-3d`,
@@ -60,17 +61,17 @@ const create3DLayer = (
     getTargetColor: (e) => e.color,
     strokeWidth: 1,
     visible: showEdges,
-    pickable: true,
+    pickable,
     widthScale: 1,
     autoHighlight: true,
     highlightColor: [255, 0, 0]
   })
 
-const createEdgeLayer = (edgeViews: EdgeView[], nodeViewMap, render3d, showEdges) => {
+const createEdgeLayer = (edgeViews: EdgeView[], nodeViewMap, render3d, showEdges, pickable) => {
   if (render3d) {
-    return create3DLayer(edgeViews, nodeViewMap, showEdges)
+    return create3DLayer(edgeViews, nodeViewMap, showEdges, pickable)
   } else {
-    return create2DLayer(edgeViews, nodeViewMap, showEdges)
+    return create2DLayer(edgeViews, nodeViewMap, showEdges, pickable)
   }
 }
 

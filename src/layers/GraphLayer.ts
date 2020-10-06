@@ -65,11 +65,17 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
 
   renderLayers(): any[] {
     // @ts-ignore
-    const {graphView, showEdges, showLabels, render3d} = this.props
+    const {graphView, showEdges, showLabels, render3d, pickable} = this.props
     const {nodeViews, edgeViews} = graphView
-    const nodeLayer = createNodeLayer([...nodeViews.values()])
+    const nodeLayer = createNodeLayer([...nodeViews.values()], pickable)
     const nodeLabelLayer = createLabelLayer(nodeViews, showLabels)
-    const edgeLayer = createEdgeLayer([...edgeViews.values()], nodeViews, render3d, showEdges)
+    const edgeLayer = createEdgeLayer(
+      [...edgeViews.values()],
+      nodeViews,
+      render3d,
+      showEdges,
+      pickable
+    )
 
     return [edgeLayer, nodeLayer, nodeLabelLayer]
   }

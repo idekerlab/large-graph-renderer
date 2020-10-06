@@ -49,7 +49,8 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   onBackgroundClick,
   onNodeMouseover,
   onEdgeMouseover,
-  backgroundColor = DEF_BG_COLOR
+  backgroundColor = DEF_BG_COLOR,
+  pickable = true
 }: RendererProps) => {
   baseStyle.backgroundColor = backgroundColor
 
@@ -102,7 +103,8 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     showEdges,
     showLabels,
     render3d: render3d === undefined ? false : render3d,
-    eventHandlers
+    eventHandlers,
+    pickable
   }
 
   const layers = [new GraphLayer(layerProps)]
@@ -112,7 +114,6 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   }
 
   const _handleClick = (layer, object) => {
-    console.log('!!!!!!!!!!!!!!!!!!!TOPP--------------------Handling click LAYER::', layer, object)
     // console.log('Handling click OBJ::--------------------', object, bgClick)
     const bgHandler = eventHandlers.onBackgroundClick
     if (bgHandler !== undefined) {
