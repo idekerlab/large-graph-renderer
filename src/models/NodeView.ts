@@ -8,6 +8,8 @@ type NodeView = ViewModel & {
   position: [number, number, number?]
   color?: [number, number, number, number?]
   size?: number
+  labelColor?: [number, number, number, number?]
+  labelFontSize?: number
 }
 
 export default NodeView

@@ -3,9 +3,9 @@ import NodeView from '../models/NodeView'
 
 const DEFAULTS = {
   highlightColor: [255, 0, 0],
-  radiusScale: 0.5,
+  radiusScale: 0.3,
   radiusMinPixels: 1,
-  radiusMaxPixels: 100
+  radiusMaxPixels: 200
 }
 
 /**

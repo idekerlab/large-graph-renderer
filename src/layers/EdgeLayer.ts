@@ -59,10 +59,10 @@ const create3DLayer = (
     },
     getSourceColor: (e) => e.color,
     getTargetColor: (e) => e.color,
-    strokeWidth: 1,
+    strokeWidth: 0.1,
     visible: showEdges,
     pickable,
-    widthScale: 1,
+    widthScale: 0.1,
     autoHighlight: true,
     highlightColor: [255, 0, 0]
   })
