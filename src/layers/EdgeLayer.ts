@@ -25,8 +25,8 @@ const create2DLayer = (
       }
       return [t.position[0], t.position[1]]
     },
-    getColor: (e) => (e.color ? e.color : [100, 100, 100, 200]),
-    strokeWidth: (e: EdgeView) => (e.width ? e.width : 1),
+    getColor: (e) => (e.color ? e.color : [200, 200, 200, 150]),
+    strokeWidth: (e: EdgeView) => (e.width ? e.width : 0.7),
     visible: showEdges,
     pickable,
     widthScale: 1,
