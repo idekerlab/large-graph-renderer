@@ -5,7 +5,7 @@ const DEFAULTS = {
   highlightColor: [255, 0, 0],
   radiusScale: 0.7,
   radiusMinPixels: 1,
-  radiusMaxPixels: 1000
+  radiusMaxPixels: 500
 }
 
 /**
