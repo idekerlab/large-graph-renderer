@@ -1,10 +1,14 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import DeckGL from '@deck.gl/react'
 import {OrthographicView, OrbitView} from '@deck.gl/core'
 import GraphLayer from '../../layers/GraphLayer'
 import GraphLayerProps from '../../layers/GraphLayerProps'
 import RendererProps from './RendererProps'
 import EventHandlers from '../../layers/EventHandlers'
+import {createMultipleLayers} from '../../layers/EdgeLayer'
+
+import NodeView from '../../models/NodeView'
+import EdgeView from '../../models/EdgeView'
 
 const DEF_BG_COLOR = '#555555'
 
@@ -15,9 +19,9 @@ const baseStyle = {
 
 const INITIAL_VIEW_STATE = {
   target: [0, 0, 0],
-  zoom: 0,
-  minZoom: -10,
-  maxZoom: 10
+  zoom: -2,
+  minZoom: -8,
+  maxZoom: 8
 }
 
 const DEF_EVENT_HANDLER: EventHandlers = {
@@ -55,16 +59,28 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   baseStyle.backgroundColor = backgroundColor
 
   // For performance, show/hide edges/labels dynamically
+  const [pickableLocal, setPickableLocal] = useState(true)
   const [showEdges, setShowEdges] = useState(true)
   const [showLabels, setShowLabels] = useState(false)
+  const [edgeLayerDepth, setEdgeLayerDepth] = useState(1)
+
+  const emptyLayers: EdgeView[][] = []
+  const [edgeLayerGroups, setEdgeLayerGroups] = useState(emptyLayers)
+
+  useEffect(() => {
+    // Create layer groups here.
+    const {edgeViews} = graphView
+    const edgeViewList = edgeViews === undefined ? [] : edgeViews.values()
+
+    const eLayers = createMultipleLayers([...edgeViewList])
+
+    setEdgeLayerGroups(eLayers)
+  }, [])
 
   const _handleViewStateChange = (state) => {
     const {viewState, interactionState} = state
-    const {zoom, target} = viewState
+    const {zoom} = viewState
     const {isZooming} = interactionState
-
-    // console.log('Zoom level = ', zoom)
-    // console.log('Full state = ', state)
 
     if (zoom > 1) {
       setShowLabels(true)
@@ -74,6 +90,14 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
           setShowLabels(false)
         }
       }, 100)
+    }
+
+    if (zoom > 2.5) {
+      setEdgeLayerDepth(2)
+      setPickableLocal(false)
+    } else {
+      setEdgeLayerDepth(1)
+      setPickableLocal(true)
     }
 
     if (isZooming) {
@@ -98,13 +122,20 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       onEdgeMouseover === undefined ? DEF_EVENT_HANDLER.onEdgeMouseover : onEdgeMouseover
   }
 
+  const {nodeViews} = graphView
+  const nodeViewList: NodeView[] = [...nodeViews.values()]
+
   const layerProps: GraphLayerProps = {
-    graphView,
+    nodeViews: nodeViewList,
+    nodeViewMap: nodeViews,
+    edgeViews: edgeLayerGroups,
     showEdges,
     showLabels,
+    edgeLayerDepth,
     render3d: render3d === undefined ? false : render3d,
     eventHandlers,
-    pickable
+    nodePickable: pickable,
+    edgePickable: pickable && pickableLocal ? true : false
   }
 
   const layers = [new GraphLayer(layerProps)]
@@ -114,7 +145,6 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   }
 
   const _handleClick = (layer, object) => {
-    // console.log('Handling click OBJ::--------------------', object, bgClick)
     const bgHandler = eventHandlers.onBackgroundClick
     if (bgHandler !== undefined) {
       bgHandler(layer, object)

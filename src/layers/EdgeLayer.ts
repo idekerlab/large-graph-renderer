@@ -43,6 +43,7 @@ const create3DLayer = (
   new ArcLayer({
     id: `edge-layer-3d`,
     data: edgeViews,
+
     getSourcePosition: (e: EdgeView) => {
       const s = nodeViewMap.get(e.s)
       if (!s) {
@@ -67,12 +68,56 @@ const create3DLayer = (
     highlightColor: [255, 0, 0]
   })
 
-const createEdgeLayer = (edgeViews: EdgeView[], nodeViewMap, render3d, showEdges, pickable) => {
+const createEdgeLayers = (
+  edgeViews: EdgeView[][],
+  nodeViewMap,
+  render3d,
+  showEdges,
+  pickable,
+  depth
+): object[] => {
   if (render3d) {
-    return create3DLayer(edgeViews, nodeViewMap, showEdges, pickable)
+    const layers3D = [create3DLayer(edgeViews[0], nodeViewMap, showEdges, pickable)]
+    return layers3D
   } else {
-    return create2DLayer(edgeViews, nodeViewMap, showEdges, pickable)
+    const layers: object[] = []
+    edgeViews.slice(0, depth + 1).forEach((viewGroup: EdgeView[]) => {
+      const newLayer = create2DLayer(viewGroup, nodeViewMap, showEdges, pickable)
+      layers.push(newLayer)
+    })
+    return layers
   }
 }
 
-export {createEdgeLayer}
+const createMultipleLayers = (edgeViews: EdgeView[]): EdgeView[][] => {
+  let idx = edgeViews.length
+  const layers: EdgeView[][] = []
+
+  while (idx--) {
+    const ev = edgeViews[idx]
+    const layerId: number | undefined = ev.layer
+    if (layerId === undefined) {
+      let defLayer = layers[0]
+      if (defLayer === undefined) {
+        defLayer = [ev]
+        layers[0] = defLayer
+      } else {
+        defLayer.push(ev)
+      }
+    } else {
+      let targetLayer = layers[layerId.toString()]
+      if (targetLayer === undefined) {
+        targetLayer = [ev]
+        layers[layerId.toString()] = targetLayer
+      } else {
+        targetLayer.push(ev)
+      }
+    }
+  }
+
+  console.log('************ Layers:', layers)
+
+  return layers
+}
+
+export {createEdgeLayers, createMultipleLayers}

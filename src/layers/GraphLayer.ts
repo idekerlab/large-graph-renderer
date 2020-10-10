@@ -1,6 +1,6 @@
 import {CompositeLayer, LayerProps} from '@deck.gl/core'
 import {createNodeLayer} from './NodeLayer'
-import {createEdgeLayer} from './EdgeLayer'
+import {createEdgeLayers} from './EdgeLayer'
 import {createLabelLayer} from './LabelLayer'
 import GraphLayerProps from './GraphLayerProps'
 
@@ -25,15 +25,12 @@ import GraphLayerProps from './GraphLayerProps'
 //   return [layer1, layer2]
 // }
 
-const selected = ''
-
 class GraphLayer extends CompositeLayer<GraphLayerProps> {
   constructor(props: GraphLayerProps) {
     super(props)
   }
 
   onClick(info) {
-    console.log('22Graph Click+++++++++++++++++', info)
     return info
   }
 
@@ -45,10 +42,8 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
     const {onNodeClick, onEdgeClick} = currentProps.eventHandlers
 
     if (mode === 'query') {
-      // console.log('* Click: Query obj = ', info.object)
       const isNode = info.object.position ? true : false
 
-      console.log()
       if (isNode) {
         onNodeClick(info.object, info.x, info.y)
         info.object.selected = true
@@ -65,19 +60,33 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
 
   renderLayers(): any[] {
     // @ts-ignore
-    const {graphView, showEdges, showLabels, render3d, pickable} = this.props
-    const {nodeViews, edgeViews} = graphView
-    const nodeLayer = createNodeLayer([...nodeViews.values()], pickable)
-    const nodeLabelLayer = createLabelLayer(nodeViews, showLabels)
-    const edgeLayer = createEdgeLayer(
-      [...edgeViews.values()],
+    const {
       nodeViews,
-      render3d,
+      nodeViewMap,
+      edgeViews,
       showEdges,
-      pickable
-    )
+      showLabels,
+      edgeLayerDepth,
+      render3d,
+      nodePickable,
+      edgePickable
+    } = this['props']
+    const nodeLayer = createNodeLayer(nodeViews, nodePickable)
+    const nodeLabelLayer = createLabelLayer(nodeViews, showLabels)
 
-    return [edgeLayer, nodeLayer, nodeLabelLayer]
+    if (showEdges) {
+      const edgeLayers = createEdgeLayers(
+        edgeViews,
+        nodeViewMap,
+        render3d,
+        showEdges,
+        edgePickable,
+        edgeLayerDepth
+      )
+      return [...edgeLayers, nodeLayer, nodeLabelLayer]
+    }
+
+    return [nodeLayer]
   }
 }
 

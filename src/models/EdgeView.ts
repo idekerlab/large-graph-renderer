@@ -10,6 +10,7 @@ type EdgeView = ViewModel & {
   color?: [number, number, number, number?]
   labelColor?: [number, number, number, number?]
   labelFontSize?: number
+  layer?: number
 }
 
 export default EdgeView
