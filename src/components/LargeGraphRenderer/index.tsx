@@ -19,7 +19,7 @@ const baseStyle = {
 
 const INITIAL_VIEW_STATE = {
   target: [0, 0, 0],
-  zoom: -2,
+  zoom: -3.5,
   minZoom: -8,
   maxZoom: 8
 }
@@ -59,7 +59,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   baseStyle.backgroundColor = backgroundColor
 
   // For performance, show/hide edges/labels dynamically
-  const [pickableLocal, setPickableLocal] = useState(true)
+  const [pickableLocal, setPickableLocal] = useState(false)
   const [showEdges, setShowEdges] = useState(true)
   const [showLabels, setShowLabels] = useState(false)
   const [edgeLayerDepth, setEdgeLayerDepth] = useState(1)
@@ -80,7 +80,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   const _handleViewStateChange = (state) => {
     const {viewState, interactionState} = state
     const {zoom} = viewState
-    const {isZooming} = interactionState
+    const {isZooming, isPanning} = interactionState
 
     if (zoom > 1) {
       setShowLabels(true)
@@ -92,7 +92,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       }, 100)
     }
 
-    if (zoom > 2.5) {
+    if (zoom > 1.5 || zoom < -2) {
       setEdgeLayerDepth(2)
       setPickableLocal(false)
     } else {
@@ -100,14 +100,13 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       setPickableLocal(true)
     }
 
-    if (isZooming) {
+    if (isZooming || isPanning) {
       setShowEdges(false)
       setTimeout(() => {
         if (showEdges !== false) {
           setShowEdges(true)
         }
       }, 300)
-    } else {
     }
   }
 

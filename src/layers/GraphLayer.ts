@@ -86,7 +86,7 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
       return [...edgeLayers, nodeLayer, nodeLabelLayer]
     }
 
-    return [nodeLayer]
+    return [nodeLayer, nodeLabelLayer]
   }
 }
 
