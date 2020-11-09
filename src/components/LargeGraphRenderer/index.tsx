@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useRef} from 'react'
 import DeckGL from '@deck.gl/react'
 import {OrthographicView, OrbitView} from '@deck.gl/core'
 import GraphLayer from '../../layers/GraphLayer'
@@ -54,8 +54,14 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   onNodeMouseover,
   onEdgeMouseover,
   backgroundColor = DEF_BG_COLOR,
-  pickable = true
+  pickable = true,
+  setDeckglReference = (deckRef) => {
+    console.log('Deck.gl instance', deckRef)
+  }
 }: RendererProps) => {
+  // For using low-level API
+  const deck = useRef(null)
+
   baseStyle.backgroundColor = backgroundColor
 
   // For performance, show/hide edges/labels dynamically
@@ -66,6 +72,11 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
 
   const emptyLayers: EdgeView[][] = []
   const [edgeLayerGroups, setEdgeLayerGroups] = useState(emptyLayers)
+
+  useEffect(() => {
+    const deckGlRef = deck.current
+    console.log('## Effect: Deck.gl instance2', deckGlRef)
+  }, [deck])
 
   useEffect(() => {
     // Create layer groups here.
@@ -165,6 +176,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
 
   return (
     <DeckGL
+      ref={deck}
       width="100%"
       height="100%"
       style={baseStyle}
@@ -184,7 +196,11 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       onClick={(layer, object) => {
         _handleClick(layer, object)
       }}
-    />
+    >
+      {({x, y, width, height, viewState, viewport}) => {
+        // console.log('------------------------DGL ref', viewport, deck.current)
+      }}
+    </DeckGL>
   )
 }
 

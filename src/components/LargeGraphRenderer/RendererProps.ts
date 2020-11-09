@@ -23,6 +23,8 @@ interface RendererProps {
 
   // Optional: pickable or not
   pickable?: boolean
+
+  setDeckglReference?: Function
 }
 
 export default RendererProps
