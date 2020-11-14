@@ -1,6 +1,12 @@
 import React, {useState, useEffect, useRef} from 'react'
 import DeckGL from '@deck.gl/react'
-import {OrthographicView, OrbitView} from '@deck.gl/core'
+import {
+  OrthographicView,
+  OrbitView,
+  WebMercatorViewport,
+  LinearInterpolator,
+  FlyToInterpolator
+} from '@deck.gl/core'
 import GraphLayer from '../../layers/GraphLayer'
 import GraphLayerProps from '../../layers/GraphLayerProps'
 import RendererProps from './RendererProps'
@@ -9,6 +15,7 @@ import {createMultipleLayers} from '../../layers/EdgeLayer'
 
 import NodeView from '../../models/NodeView'
 import EdgeView from '../../models/EdgeView'
+import GraphView from '../../models/GraphView'
 
 const DEF_BG_COLOR = '#555555'
 
@@ -19,10 +26,59 @@ const baseStyle = {
 
 const INITIAL_VIEW_STATE = {
   target: [0, 0, 0],
-  zoom: -3.5,
+  zoom: -1,
   minZoom: -8,
   maxZoom: 8
 }
+
+type Bounds = {
+  minX: number
+  minY: number
+  maxX: number
+  maxY: number
+}
+
+const getBounds = (nodeViews: NodeView[]): Bounds => {
+  let minX: number = Number.POSITIVE_INFINITY
+  let minY: number = Number.POSITIVE_INFINITY
+  let maxX: number = Number.NEGATIVE_INFINITY
+  let maxY: number = Number.NEGATIVE_INFINITY
+
+  let idx: number = nodeViews.length
+  while (idx--) {
+    const nv: NodeView = nodeViews[idx]
+    const x = nv.position[0]
+    const y = nv.position[1]
+
+    if (x <= minX) {
+      minX = x
+    }
+    if (y <= minY) {
+      minY = y
+    }
+    if (x >= maxX) {
+      maxX = x
+    }
+    if (y >= maxY) {
+      maxY = y
+    }
+  }
+
+  const newBopunds: Bounds = {
+    minX,
+    minY,
+    maxX,
+    maxY
+  }
+
+  return newBopunds
+}
+
+// const fitContent = (nodeViews: NodeView[], width: number, height: number): NodeView[] => {
+//   const size = width > height ? width : height
+//   // Find min/max
+//   return nodeViews
+// }
 
 const DEF_EVENT_HANDLER: EventHandlers = {
   onNodeClick: (event, x, y): void => {
@@ -40,6 +96,11 @@ const DEF_EVENT_HANDLER: EventHandlers = {
   onBackgroundClick: (event): void => {
     console.log('* BG click event')
   }
+}
+
+type ViewportSize = {
+  width: number
+  height: number
 }
 
 /**
@@ -61,6 +122,53 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
 }: RendererProps) => {
   // For using low-level API
   const deck = useRef(null)
+  const [deckRef, setDeckRef] = useState(null)
+  const [bounds, setBounds] = useState<Bounds | null>(null)
+
+  const handleLoad = (deckRef, graphView: GraphView) => {
+    const deckGlInstance = deckRef.deck
+    console.log('$ON LOAD', deckGlInstance)
+    const {width, height} = deckGlInstance
+    const {nodeViews} = graphView
+    const nodeViewList: NodeView[] = [...nodeViews.values()]
+
+    const bounds: Bounds = getBounds(nodeViewList)
+    setBounds(bounds)
+    console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&4', bounds, width, height)
+  }
+
+  // Viewport size
+  const [viewportSize, setViewportSize] = useState<ViewportSize>({width: 0, height: 0})
+
+  const handleResize = (size: ViewportSize, nodeViews: NodeView[]): void => {
+    console.log('WH !!!!!!!!!!! $Handle Resize', size)
+    if (bounds !== null) {
+      setViewportSize(size)
+
+      const nvs: NodeView[] = fitContent(size, bounds, nodeViews)
+
+      console.log('INITIALIZED6 !!!!!!!!!!! $Handle Resize', nvs, size, bounds)
+    }
+  }
+
+  const fitContent = (viewportSize: ViewportSize, bounds: Bounds, nodeViews: NodeView[]) => {
+    const originalWidth = bounds.maxX - bounds.minX
+    const originalHeight = bounds.maxY - bounds.minY
+
+    const ratioX = originalWidth / viewportSize.width
+
+    let idx = nodeViews.length
+    while (idx--) {
+      const nv = nodeViews[idx]
+      const x = nv.position[0]
+      const y = nv.position[1]
+      nv.position[0] = x * 0.1
+      nv.position[1] = y * 0.1
+      nodeViews[idx] = nv
+    }
+
+    return nodeViewList
+  }
 
   baseStyle.backgroundColor = backgroundColor
 
@@ -76,6 +184,15 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   useEffect(() => {
     const deckGlRef = deck.current
     console.log('## Effect: Deck.gl instance2', deckGlRef)
+
+    if (deckGlRef !== null) {
+      setDeckRef(deckGlRef)
+      // @ts-ignore
+      const deck = deckGlRef.deck
+      // @ts-ignore
+      const viewports = deckGlRef.viewports
+      console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&', deck)
+    }
   }, [deck])
 
   useEffect(() => {
@@ -195,10 +312,48 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       }}
       onClick={(layer, object) => {
         _handleClick(layer, object)
+        // const {viewport} = layer.context
+        console.log('## SINGLE4:', layer, object, deck)
+
+        // @ts-ignore
+        deckRef.deck.setProps({
+          initialViewState: {
+            target: [0, 0, 0],
+            zoom: -1,
+            transitionDuration: 0,
+            // transitionInterpolator: new FlyToInterpolator()
+            transitionInterpolator: new LinearInterpolator(['target', 'zoom'])
+          }
+        })
+
+        // @ts-ignore
+        deckRef.deck.setProps({
+          initialViewState: {
+            target: [0, 0, 0],
+            zoom: -1,
+            transitionDuration: 0,
+            // transitionInterpolator: new FlyToInterpolator()
+            transitionInterpolator: new LinearInterpolator(['target', 'zoom'])
+          }
+        })
+        setShowLabels(false)
+        // deckRef.pickMultipleObjects({x: 0, y: 0, radius: 1000})
+      }}
+      onDblClick={(layer, object) => {
+        console.log('## DBL:', layer, object)
+      }}
+      onResize={(size) => {
+        handleResize(size, nodeViewList)
+      }}
+      onLoad={() => {
+        handleLoad(deckRef, graphView)
+      }}
+      onAfterRender={() => {
+        // console.log('after rend---------------------', deckRef)
       }}
     >
       {({x, y, width, height, viewState, viewport}) => {
-        // console.log('------------------------DGL ref', viewport, deck.current)
+        console.log('---------DGL ref', x, y, width, height, viewport, viewState, nodeViewList)
       }}
     </DeckGL>
   )
