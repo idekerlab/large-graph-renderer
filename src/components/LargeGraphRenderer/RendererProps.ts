@@ -25,6 +25,8 @@ interface RendererProps {
   pickable?: boolean
 
   setDeckglReference?: Function
+
+  commandProxy?: Function
 }
 
 export default RendererProps

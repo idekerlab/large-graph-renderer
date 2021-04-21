@@ -3,9 +3,8 @@ import DeckGL from '@deck.gl/react'
 import {
   OrthographicView,
   OrbitView,
-  WebMercatorViewport,
   LinearInterpolator,
-  FlyToInterpolator
+  OrthographicController
 } from '@deck.gl/core'
 import GraphLayer from '../../layers/GraphLayer'
 import GraphLayerProps from '../../layers/GraphLayerProps'
@@ -16,20 +15,13 @@ import {createMultipleLayers} from '../../layers/EdgeLayer'
 import NodeView from '../../models/NodeView'
 import EdgeView from '../../models/EdgeView'
 import GraphView from '../../models/GraphView'
+import CommandProxy from './CommandProxy'
 
 const DEF_BG_COLOR = '#555555'
 
 const baseStyle = {
   backgroundColor: DEF_BG_COLOR,
-  position: 'relative',
-  border: '4px solid #ff0000'
-}
-
-const INITIAL_VIEW_STATE = {
-  target: [0, 0, 0],
-  zoom: 0,
-  minZoom: -8,
-  maxZoom: 8
+  position: 'relative'
 }
 
 const PADDING = 50
@@ -107,12 +99,6 @@ const getBounds = (nodeViews: NodeView[]): Bounds => {
 //   ]
 // }
 
-// const fitContent = (nodeViews: NodeView[], width: number, height: number): NodeView[] => {
-//   const size = width > height ? width : height
-//   // Find min/max
-//   return nodeViews
-// }
-
 const DEF_EVENT_HANDLER: EventHandlers = {
   onNodeClick: (event, x, y): void => {
     console.log('* Default click handler: node', event, x, y)
@@ -136,6 +122,10 @@ type ViewportSize = {
   height: number
 }
 
+const DUMMY_PROXY = (proxy) => {
+  console.log('Dummy proxy', proxy)
+}
+
 /**
  * Functional React component for large graph rendering using Deck.gl
  */
@@ -151,7 +141,8 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   pickable = true,
   setDeckglReference = (deckRef) => {
     console.log('Deck.gl instance', deckRef)
-  }
+  },
+  commandProxy = DUMMY_PROXY
 }: RendererProps) => {
   // For using low-level API
   const deck = useRef(null)
@@ -199,7 +190,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     })
   })
 
-  const fitContent2 = (bound: [number, number, number, number], viewport) => {
+  const fitContent2 = () => {
     const deckGlInstance = deckRef.deck
     const {width, height} = deckGlInstance
     console.log(deckGlInstance)
@@ -242,6 +233,32 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     })
   }
 
+  const _handleZoom = (increment: number): void => {
+    const deckGlInstance = deckRef.deck
+    const {viewState} = deckGlInstance
+    console.log('Zoom::', increment, viewState)
+    const newZoomLevel: number = viewState.zoom + increment
+    const target = viewState.target
+    viewState.zoom = newZoomLevel
+    console.log('Zoom2::', newZoomLevel, deckRef)
+    // const newState = Object.assign({}, viewState)
+    // setInitialViewState2(newState)
+    const {width, height} = deckGlInstance
+
+    setInitialViewState2({
+      target: target,
+      zoom: newZoomLevel,
+      minZoom: -8,
+      maxZoom: 8,
+      transitionInterpolator: new LinearInterpolator({
+        transitionProps: ['target', 'zoom'],
+        around: [width / 2, height / 2]
+      })
+    })
+  }
+
+  const proxy = new CommandProxy(fitContent2, _handleZoom)
+
   const handleLoad = (deckRef, graphView: GraphView) => {
     const deckGlInstance = deckRef.deck
 
@@ -253,8 +270,9 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     const bounds: Bounds = getBounds(nodeViewList)
     setBounds(bounds)
 
-    fitContent2(null, null)
-    console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$ON LOAD OK', deckGlInstance)
+    fitContent2()
+    console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$ON LOAD OK2', proxy)
+    commandProxy(proxy)
   }
 
   // Viewport size
@@ -401,7 +419,23 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
 
       const pj1 = viewport.project([bounds.minX, 0, 0])
       console.log('------------- test1 pj1----', pj1)
-      fitContent2(b1, viewport)
+      // fitContent2(b1, viewport)
+    }
+  }
+
+  class CustomController extends OrthographicController {
+    constructor(options = {}) {
+      super(options)
+      // this.events = ['pointermove']
+    }
+
+    handleEvent(event) {
+      if (event.type === 'pan') {
+        // do something
+        console.log('PN----------')
+      } else {
+        super.handleEvent(event)
+      }
     }
   }
 
@@ -412,7 +446,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       height="100%"
       style={baseStyle}
       initialViewState={initialViewState2}
-      controller={true}
+      controller={{type: CustomController}}
       views={view}
       layers={layers}
       onDragStart={(info) => {
@@ -427,29 +461,6 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       onClick={(layer, object) => {
         _handleClick(layer, object)
 
-        // @ts-ignore
-        // deckRef.deck.setProps({
-        //   initialViewState: {
-        //     target: [0, 0, 0],
-        //     zoom: 1,
-        //     transitionDuration: 1500,
-        //     // transitionInterpolator: new FlyToInterpolator()
-        //     transitionInterpolator: new LinearInterpolator({
-        //       transitionProps: ['target', 'zoom']
-        //     })
-        //   }
-        // })
-
-        // // @ts-ignore
-        // deckRef.deck.setProps({
-        //   initialViewState: {
-        //     target: [0, 0, 0],
-        //     zoom: -1,
-        //     transitionDuration: 0,
-        //     // transitionInterpolator: new FlyToInterpolator()
-        //     transitionInterpolator: new LinearInterpolator(['target', 'zoom'])
-        //   }
-        // })
         setShowLabels(false)
         // deckRef.pickMultipleObjects({x: 0, y: 0, radius: 1000})
       }}
@@ -464,10 +475,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       }}
       onAfterRender={() => {}}
     >
-      {({x, y, width, height, viewState, viewport}) => {
-        // console.log('Renderer callback:', x, y, width, height)
-        // console.log('----Callback', x, y, width, height, viewport, viewState)
-      }}
+      {({x, y, width, height, viewState, viewport}) => {}}
     </DeckGL>
   )
 }
