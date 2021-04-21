@@ -7,7 +7,7 @@
     "module": "esnext",
     "target": "ES2015",
 		"pretty": true,
-    "strict": true,
+    "strict": false,
     "jsx": "react",
     "skipLibCheck": true,
     "sourceMap": false,

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react'
+import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react'
 import DeckGL from '@deck.gl/react'
 import {
   OrthographicView,
@@ -21,15 +21,18 @@ const DEF_BG_COLOR = '#555555'
 
 const baseStyle = {
   backgroundColor: DEF_BG_COLOR,
-  position: 'relative'
+  position: 'relative',
+  border: '4px solid #ff0000'
 }
 
 const INITIAL_VIEW_STATE = {
   target: [0, 0, 0],
-  zoom: -1,
+  zoom: 0,
   minZoom: -8,
   maxZoom: 8
 }
+
+const PADDING = 50
 
 type Bounds = {
   minX: number
@@ -64,15 +67,45 @@ const getBounds = (nodeViews: NodeView[]): Bounds => {
     }
   }
 
-  const newBopunds: Bounds = {
+  const newBounds: Bounds = {
     minX,
     minY,
     maxX,
     maxY
   }
 
-  return newBopunds
+  return newBounds
 }
+
+// const scaleToAspectRatio = (boundingBox: Bounds, width: number, height: number): Bounds => {
+//   const currentWidth = boundingBox.maxX - boundingBox.minX
+//   const currentHeight = boundingBox.maxY - boundingBox.minY
+
+//   let newWidth = currentWidth
+//   let newHeight = currentHeight
+
+//   if (currentWidth / currentHeight < width / height) {
+//     // expand bounding box width
+//     newWidth = (width / height) * currentHeight
+//   } else {
+//     newHeight = (height / width) * currentWidth
+//   }
+
+//   if (newWidth < width) {
+//     newWidth = width
+//     newHeight = height
+//   }
+
+//   const xCenter = (xMax + xMin) / 2
+//   const yCenter = (yMax + yMin) / 2
+
+//   return [
+//     xCenter - newWidth / 2,
+//     yCenter - newHeight / 2,
+//     xCenter + newWidth / 2,
+//     yCenter + newHeight / 2
+//   ]
+// }
 
 // const fitContent = (nodeViews: NodeView[], width: number, height: number): NodeView[] => {
 //   const size = width > height ? width : height
@@ -123,10 +156,95 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   // For using low-level API
   const deck = useRef(null)
   const [deckRef, setDeckRef] = useState(null)
-  const [bounds, setBounds] = useState<Bounds | null>(null)
+  const [bounds, setBounds] = useState<Bounds>({minX: 0, minY: 0, maxX: 0, maxY: 0})
+
+  const initialViewState = useMemo(() => {
+    if (deckRef !== null) {
+      const deckGlInstance = deckRef.deck
+      const {width, height} = deckGlInstance
+      console.log(deckGlInstance)
+      const originalWidth: number = bounds.maxX - bounds.minX
+      const originalHeight: number = bounds.maxY - bounds.minY
+      const wRatio: number = originalWidth / width
+      const hRatio: number = originalHeight / height
+
+      let zoomLevel = 0
+
+      if (originalHeight < originalWidth) {
+        zoomLevel = wRatio
+      } else {
+        zoomLevel = hRatio
+      }
+      const centerX: number = originalWidth / 2
+      const centerY: number = originalHeight / 2
+      const newVS = {
+        target: [0, 0, 0],
+        zoom: -4,
+        minZoom: -8,
+        maxZoom: 8
+      }
+      console.log('VS &&&&&&&&&&&&&4', bounds, newVS, width, height, zoomLevel)
+
+      return newVS
+    }
+  }, [bounds])
+
+  const [initialViewState2, setInitialViewState2] = useState({
+    target: [6000, 0, 0],
+    zoom: -3.5,
+    minZoom: -8,
+    maxZoom: 8,
+    transitionInterpolator: new LinearInterpolator({
+      transitionProps: ['target', 'zoom']
+    })
+  })
+
+  const fitContent2 = (bound: [number, number, number, number], viewport) => {
+    const deckGlInstance = deckRef.deck
+    const {width, height} = deckGlInstance
+    console.log(deckGlInstance)
+    const networkWidth: number = bounds.maxX - bounds.minX
+    const networkHeight: number = bounds.maxY - bounds.minY
+    const wRatio: number = (networkWidth + PADDING) / width
+    const hRatio: number = (networkHeight + PADDING) / height
+
+    console.log(
+      '-------------fit2-F------------',
+      bounds,
+      networkWidth,
+      networkHeight,
+      width,
+      wRatio
+    )
+
+    // Case 1: width is larger than height of network --> Fit to width
+    let scalingFactor = 0
+    if (networkWidth >= networkHeight) {
+      scalingFactor = -Math.log2(wRatio)
+    } else {
+      // Case 2: height is larger than width --> fit to height
+      scalingFactor = -Math.log2(hRatio)
+    }
+
+    const deltaX = (Math.abs(bounds.maxX) - Math.abs(bounds.minX)) / 2
+    // const deltaY = 0
+    const deltaY = (Math.abs(bounds.maxY) - Math.abs(bounds.minY)) / 2
+
+    setInitialViewState2({
+      // target: [0, 0, 0],
+      target: [deltaX, deltaY, 0],
+      zoom: scalingFactor,
+      minZoom: -8,
+      maxZoom: 8,
+      transitionInterpolator: new LinearInterpolator({
+        transitionProps: ['target', 'zoom']
+      })
+    })
+  }
 
   const handleLoad = (deckRef, graphView: GraphView) => {
     const deckGlInstance = deckRef.deck
+
     console.log('$ON LOAD', deckGlInstance)
     const {width, height} = deckGlInstance
     const {nodeViews} = graphView
@@ -134,7 +252,9 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
 
     const bounds: Bounds = getBounds(nodeViewList)
     setBounds(bounds)
-    console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&4', bounds, width, height)
+
+    fitContent2(null, null)
+    console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$ON LOAD OK', deckGlInstance)
   }
 
   // Viewport size
@@ -144,10 +264,12 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     console.log('WH !!!!!!!!!!! $Handle Resize', size)
     if (bounds !== null) {
       setViewportSize(size)
+      const bounds: Bounds = getBounds(nodeViewList)
+      setBounds(bounds)
 
-      const nvs: NodeView[] = fitContent(size, bounds, nodeViews)
+      // const nvs: NodeView[] = fitContent(size, bounds, nodeViews)
 
-      console.log('INITIALIZED6 !!!!!!!!!!! $Handle Resize', nvs, size, bounds)
+      // console.log('INITIALIZED6 !!!!!!!!!!! $Handle Resize', nvs, size, bounds)
     }
   }
 
@@ -183,15 +305,8 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
 
   useEffect(() => {
     const deckGlRef = deck.current
-    console.log('## Effect: Deck.gl instance2', deckGlRef)
-
-    if (deckGlRef !== null) {
+    if (deckGlRef !== null && deckGlRef !== undefined) {
       setDeckRef(deckGlRef)
-      // @ts-ignore
-      const deck = deckGlRef.deck
-      // @ts-ignore
-      const viewports = deckGlRef.viewports
-      console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&', deck)
     }
   }, [deck])
 
@@ -278,17 +393,16 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     }
 
     // Fit content
+    if (layer) {
+      const {viewport} = layer
+      const b1: [number, number, number, number] = viewport.getBounds()
+      console.log('------------- VP----', viewport)
+      console.log('------------- bound----', b1)
 
-    // const {viewport} = view.makeViewport({'100%', '100%', viewState})
-    // if (layer) {
-    //   const {longitude, latitude, zoom} = viewport.fitBounds([
-    //     [object.minLng, object.minLat],
-    //     [object.maxLng, object.maxLat]
-    //   ])
-    //   // Zoom to the object
-    //   // deck.setProps({
-    //   //   viewState: {longitude, latitude, zoom}
-    // }
+      const pj1 = viewport.project([bounds.minX, 0, 0])
+      console.log('------------- test1 pj1----', pj1)
+      fitContent2(b1, viewport)
+    }
   }
 
   return (
@@ -297,7 +411,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       width="100%"
       height="100%"
       style={baseStyle}
-      initialViewState={INITIAL_VIEW_STATE}
+      initialViewState={initialViewState2}
       controller={true}
       views={view}
       layers={layers}
@@ -312,30 +426,30 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       }}
       onClick={(layer, object) => {
         _handleClick(layer, object)
-        // const {viewport} = layer.context
-        console.log('## SINGLE4:', layer, object, deck)
 
         // @ts-ignore
-        deckRef.deck.setProps({
-          initialViewState: {
-            target: [0, 0, 0],
-            zoom: -1,
-            transitionDuration: 0,
-            // transitionInterpolator: new FlyToInterpolator()
-            transitionInterpolator: new LinearInterpolator(['target', 'zoom'])
-          }
-        })
+        // deckRef.deck.setProps({
+        //   initialViewState: {
+        //     target: [0, 0, 0],
+        //     zoom: 1,
+        //     transitionDuration: 1500,
+        //     // transitionInterpolator: new FlyToInterpolator()
+        //     transitionInterpolator: new LinearInterpolator({
+        //       transitionProps: ['target', 'zoom']
+        //     })
+        //   }
+        // })
 
-        // @ts-ignore
-        deckRef.deck.setProps({
-          initialViewState: {
-            target: [0, 0, 0],
-            zoom: -1,
-            transitionDuration: 0,
-            // transitionInterpolator: new FlyToInterpolator()
-            transitionInterpolator: new LinearInterpolator(['target', 'zoom'])
-          }
-        })
+        // // @ts-ignore
+        // deckRef.deck.setProps({
+        //   initialViewState: {
+        //     target: [0, 0, 0],
+        //     zoom: -1,
+        //     transitionDuration: 0,
+        //     // transitionInterpolator: new FlyToInterpolator()
+        //     transitionInterpolator: new LinearInterpolator(['target', 'zoom'])
+        //   }
+        // })
         setShowLabels(false)
         // deckRef.pickMultipleObjects({x: 0, y: 0, radius: 1000})
       }}
@@ -348,12 +462,11 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       onLoad={() => {
         handleLoad(deckRef, graphView)
       }}
-      onAfterRender={() => {
-        // console.log('after rend---------------------', deckRef)
-      }}
+      onAfterRender={() => {}}
     >
       {({x, y, width, height, viewState, viewport}) => {
-        console.log('---------DGL ref', x, y, width, height, viewport, viewState, nodeViewList)
+        // console.log('Renderer callback:', x, y, width, height)
+        // console.log('----Callback', x, y, width, height, viewport, viewState)
       }}
     </DeckGL>
   )
