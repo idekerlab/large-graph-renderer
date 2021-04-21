@@ -69,36 +69,6 @@ const getBounds = (nodeViews: NodeView[]): Bounds => {
   return newBounds
 }
 
-// const scaleToAspectRatio = (boundingBox: Bounds, width: number, height: number): Bounds => {
-//   const currentWidth = boundingBox.maxX - boundingBox.minX
-//   const currentHeight = boundingBox.maxY - boundingBox.minY
-
-//   let newWidth = currentWidth
-//   let newHeight = currentHeight
-
-//   if (currentWidth / currentHeight < width / height) {
-//     // expand bounding box width
-//     newWidth = (width / height) * currentHeight
-//   } else {
-//     newHeight = (height / width) * currentWidth
-//   }
-
-//   if (newWidth < width) {
-//     newWidth = width
-//     newHeight = height
-//   }
-
-//   const xCenter = (xMax + xMin) / 2
-//   const yCenter = (yMax + yMin) / 2
-
-//   return [
-//     xCenter - newWidth / 2,
-//     yCenter - newHeight / 2,
-//     xCenter + newWidth / 2,
-//     yCenter + newHeight / 2
-//   ]
-// }
-
 const DEF_EVENT_HANDLER: EventHandlers = {
   onNodeClick: (event, x, y): void => {
     console.log('* Default click handler: node', event, x, y)
@@ -123,7 +93,7 @@ type ViewportSize = {
 }
 
 const DUMMY_PROXY = (proxy) => {
-  console.log('Dummy proxy', proxy)
+  console.log('Dummy proxy function called:', proxy)
 }
 
 /**
@@ -148,37 +118,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   const deck = useRef(null)
   const [deckRef, setDeckRef] = useState(null)
   const [bounds, setBounds] = useState<Bounds>({minX: 0, minY: 0, maxX: 0, maxY: 0})
-
-  const initialViewState = useMemo(() => {
-    if (deckRef !== null) {
-      const deckGlInstance = deckRef.deck
-      const {width, height} = deckGlInstance
-      console.log(deckGlInstance)
-      const originalWidth: number = bounds.maxX - bounds.minX
-      const originalHeight: number = bounds.maxY - bounds.minY
-      const wRatio: number = originalWidth / width
-      const hRatio: number = originalHeight / height
-
-      let zoomLevel = 0
-
-      if (originalHeight < originalWidth) {
-        zoomLevel = wRatio
-      } else {
-        zoomLevel = hRatio
-      }
-      const centerX: number = originalWidth / 2
-      const centerY: number = originalHeight / 2
-      const newVS = {
-        target: [0, 0, 0],
-        zoom: -4,
-        minZoom: -8,
-        maxZoom: 8
-      }
-      console.log('VS &&&&&&&&&&&&&4', bounds, newVS, width, height, zoomLevel)
-
-      return newVS
-    }
-  }, [bounds])
+  const [currentBounds, setCurrentBounds] = useState([0, 0, 0, 0])
 
   const [initialViewState2, setInitialViewState2] = useState({
     target: [6000, 0, 0],
@@ -193,20 +133,10 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   const fitContent2 = () => {
     const deckGlInstance = deckRef.deck
     const {width, height} = deckGlInstance
-    console.log(deckGlInstance)
     const networkWidth: number = bounds.maxX - bounds.minX
     const networkHeight: number = bounds.maxY - bounds.minY
     const wRatio: number = (networkWidth + PADDING) / width
     const hRatio: number = (networkHeight + PADDING) / height
-
-    console.log(
-      '-------------fit2-F------------',
-      bounds,
-      networkWidth,
-      networkHeight,
-      width,
-      wRatio
-    )
 
     // Case 1: width is larger than height of network --> Fit to width
     let scalingFactor = 0
@@ -218,11 +148,9 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     }
 
     const deltaX = (Math.abs(bounds.maxX) - Math.abs(bounds.minX)) / 2
-    // const deltaY = 0
     const deltaY = (Math.abs(bounds.maxY) - Math.abs(bounds.minY)) / 2
 
     setInitialViewState2({
-      // target: [0, 0, 0],
       target: [deltaX, deltaY, 0],
       zoom: scalingFactor,
       minZoom: -8,
@@ -236,23 +164,22 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   const _handleZoom = (increment: number): void => {
     const deckGlInstance = deckRef.deck
     const {viewState} = deckGlInstance
-    console.log('Zoom::', increment, viewState)
     const newZoomLevel: number = viewState.zoom + increment
-    const target = viewState.target
+    const newTarget = viewState.target
     viewState.zoom = newZoomLevel
-    console.log('Zoom2::', newZoomLevel, deckRef)
-    // const newState = Object.assign({}, viewState)
-    // setInitialViewState2(newState)
-    const {width, height} = deckGlInstance
 
+    // if (deckRef.viewports[0] !== undefined) {
+    //   const newBounds = deckRef.viewports[0].getBounds()
+    //   console.log('Zoom2::', newBounds)
+    //   newTarget = [-(newBounds[2] - newBounds[0]) / 2, -(newBounds[3] - newBounds[1]) / 2, 0]
+    // }
     setInitialViewState2({
-      target: target,
+      target: newTarget,
       zoom: newZoomLevel,
       minZoom: -8,
       maxZoom: 8,
       transitionInterpolator: new LinearInterpolator({
-        transitionProps: ['target', 'zoom'],
-        around: [width / 2, height / 2]
+        transitionProps: ['target', 'zoom']
       })
     })
   }
@@ -271,7 +198,6 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     setBounds(bounds)
 
     fitContent2()
-    console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$ON LOAD OK2', proxy)
     commandProxy(proxy)
   }
 
@@ -284,10 +210,6 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       setViewportSize(size)
       const bounds: Bounds = getBounds(nodeViewList)
       setBounds(bounds)
-
-      // const nvs: NodeView[] = fitContent(size, bounds, nodeViews)
-
-      // console.log('INITIALIZED6 !!!!!!!!!!! $Handle Resize', nvs, size, bounds)
     }
   }
 
@@ -409,34 +331,6 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     if (bgHandler !== undefined) {
       bgHandler(layer, object)
     }
-
-    // Fit content
-    if (layer) {
-      const {viewport} = layer
-      const b1: [number, number, number, number] = viewport.getBounds()
-      console.log('------------- VP----', viewport)
-      console.log('------------- bound----', b1)
-
-      const pj1 = viewport.project([bounds.minX, 0, 0])
-      console.log('------------- test1 pj1----', pj1)
-      // fitContent2(b1, viewport)
-    }
-  }
-
-  class CustomController extends OrthographicController {
-    constructor(options = {}) {
-      super(options)
-      // this.events = ['pointermove']
-    }
-
-    handleEvent(event) {
-      if (event.type === 'pan') {
-        // do something
-        console.log('PN----------')
-      } else {
-        super.handleEvent(event)
-      }
-    }
   }
 
   return (
@@ -446,7 +340,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       height="100%"
       style={baseStyle}
       initialViewState={initialViewState2}
-      controller={{type: CustomController}}
+      controller={true}
       views={view}
       layers={layers}
       onDragStart={(info) => {
