@@ -240,6 +240,8 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   const [showLabels, setShowLabels] = useState(false)
   const [edgeLayerDepth, setEdgeLayerDepth] = useState(1)
 
+  const [selectionStart, setSelectionStart] = useState<[number, number]>([0, 0])
+
   const emptyLayers: EdgeView[][] = []
   const [edgeLayerGroups, setEdgeLayerGroups] = useState(emptyLayers)
 
@@ -261,6 +263,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   }, [])
 
   const _handleViewStateChange = (state) => {
+    console.log('VS::', state)
     const {viewState, interactionState} = state
     const {zoom} = viewState
     const {isZooming, isPanning} = interactionState
@@ -333,6 +336,28 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     }
   }
 
+  const _handleKeyPress = (event) => {
+    console.log('Key Event press here! ', event.key)
+    if (event.key === 'Enter') {
+      console.log('enter press here! ')
+    }
+  }
+
+  class GraphController extends OrthographicController {
+    handleEvent(event) {
+      console.log('EVV! ', event)
+      if (event.type === 'keydown') {
+        // do something
+        console.log('KEY EVV! ', event)
+      } else if (event.type === 'keyup') {
+        // do something
+        console.log('KEY UPPPPPPPPPPPPPPPPPPPP! ', event)
+      } else {
+        super.handleEvent(event)
+      }
+    }
+  }
+
   return (
     <DeckGL
       ref={deck}
@@ -340,14 +365,19 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       height="100%"
       style={baseStyle}
       initialViewState={initialViewState2}
-      controller={true}
+      controller={GraphController}
       views={view}
       layers={layers}
       onDragStart={(info) => {
         setShowEdges(false)
+        console.log('---------->>>>Start', info)
+      }}
+      onDrag={(info, event) => {
+        console.log('----------ON', info, event)
       }}
       onDragEnd={(info) => {
         setShowEdges(true)
+        console.log('---------->>>>End', info)
       }}
       onViewStateChange={(state) => {
         _handleViewStateChange(state)

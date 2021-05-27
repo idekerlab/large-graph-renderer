@@ -3,6 +3,7 @@ import {createNodeLayer} from './NodeLayer'
 import {createEdgeLayers} from './EdgeLayer'
 import {createLabelLayer} from './LabelLayer'
 import GraphLayerProps from './GraphLayerProps'
+import {createSelectionLayer} from './SelectionLayer'
 
 // const getLayers = (edgeViews: EdgeView[]): EdgeView[] => {
 //   const edgeCount = edgeViews.length
@@ -74,6 +75,8 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
     const nodeLayer = createNodeLayer(nodeViews, nodePickable)
     const nodeLabelLayer = createLabelLayer(nodeViews, showLabels)
 
+    const selectionLayer = createSelectionLayer()
+
     if (showEdges) {
       const edgeLayers = createEdgeLayers(
         edgeViews,
@@ -83,7 +86,7 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
         edgePickable,
         edgeLayerDepth
       )
-      return [...edgeLayers, nodeLayer, nodeLabelLayer]
+      return [...edgeLayers, nodeLayer, nodeLabelLayer, selectionLayer]
     }
 
     return [nodeLayer, nodeLabelLayer]
