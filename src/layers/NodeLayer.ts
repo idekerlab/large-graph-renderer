@@ -15,6 +15,7 @@ const DEFAULTS = {
  */
 const createNodeLayer = (nodeViews: NodeView[], pickable = true): object => {
   return new ScatterplotLayer({
+    id: 'node-layer',
     data: nodeViews,
     getPosition: (d: NodeView): number[] => [d.position[0], d.position[1]],
     getColor: (d: NodeView): [number, number, number, number?] | undefined =>

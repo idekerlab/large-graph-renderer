@@ -13,6 +13,8 @@ type GraphLayerProps = {
   eventHandlers: EventHandlers
   nodePickable?: boolean
   edgePickable?: boolean
+  bounds: [number, number, number, number] | null
+  multipleSelection: boolean
 }
 
 export default GraphLayerProps

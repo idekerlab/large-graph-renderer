@@ -5,27 +5,6 @@ import {createLabelLayer} from './LabelLayer'
 import GraphLayerProps from './GraphLayerProps'
 import {createSelectionLayer} from './SelectionLayer'
 
-// const getLayers = (edgeViews: EdgeView[]): EdgeView[] => {
-//   const edgeCount = edgeViews.length
-//   const evs = [...edgeViews.values()]
-
-//   let idx = 0
-
-//   const layer1: EdgeView[] = []
-//   const layer2: EdgeView[] = []
-
-//   while (idx < edgeCount) {
-//     const ev = evs[idx]
-//     if (idx % 2 === 0) {
-//       layer1.push(ev)
-//     } else {
-//       layer2.push(ev)
-//     }
-//     idx++
-//   }
-//   return [layer1, layer2]
-// }
-
 class GraphLayer extends CompositeLayer<GraphLayerProps> {
   constructor(props: GraphLayerProps) {
     super(props)
@@ -42,7 +21,8 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
     // @ts-ignore
     const {onNodeClick, onEdgeClick} = currentProps.eventHandlers
 
-    if (mode === 'query') {
+    if (mode === 'query' && currentProps.multipleSelection === false) {
+      console.log('PICK info called::', pickingInfo)
       const isNode = info.object.position ? true : false
 
       if (isNode) {
@@ -70,12 +50,13 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
       edgeLayerDepth,
       render3d,
       nodePickable,
-      edgePickable
+      edgePickable,
+      bounds
     } = this['props']
     const nodeLayer = createNodeLayer(nodeViews, nodePickable)
     const nodeLabelLayer = createLabelLayer(nodeViews, showLabels)
 
-    const selectionLayer = createSelectionLayer()
+    const selectionLayer = createSelectionLayer(bounds)
 
     if (showEdges) {
       const edgeLayers = createEdgeLayers(
@@ -86,10 +67,10 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
         edgePickable,
         edgeLayerDepth
       )
-      return [...edgeLayers, nodeLayer, nodeLabelLayer, selectionLayer]
+      return [...edgeLayers, nodeLayer, nodeLabelLayer]
     }
 
-    return [nodeLayer, nodeLabelLayer]
+    return [nodeLayer, nodeLabelLayer, selectionLayer]
   }
 }
 

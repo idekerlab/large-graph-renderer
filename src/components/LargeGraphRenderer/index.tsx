@@ -118,7 +118,6 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   const deck = useRef(null)
   const [deckRef, setDeckRef] = useState(null)
   const [bounds, setBounds] = useState<Bounds>({minX: 0, minY: 0, maxX: 0, maxY: 0})
-  const [currentBounds, setCurrentBounds] = useState([0, 0, 0, 0])
 
   const [initialViewState2, setInitialViewState2] = useState({
     target: [6000, 0, 0],
@@ -205,7 +204,6 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   const [viewportSize, setViewportSize] = useState<ViewportSize>({width: 0, height: 0})
 
   const handleResize = (size: ViewportSize, nodeViews: NodeView[]): void => {
-    console.log('WH !!!!!!!!!!! $Handle Resize', size)
     if (bounds !== null) {
       setViewportSize(size)
       const bounds: Bounds = getBounds(nodeViewList)
@@ -235,12 +233,18 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   baseStyle.backgroundColor = backgroundColor
 
   // For performance, show/hide edges/labels dynamically
-  const [pickableLocal, setPickableLocal] = useState(false)
+  const [pickableLocal, setPickableLocal] = useState(true)
   const [showEdges, setShowEdges] = useState(true)
   const [showLabels, setShowLabels] = useState(false)
   const [edgeLayerDepth, setEdgeLayerDepth] = useState(1)
 
   const [selectionStart, setSelectionStart] = useState<[number, number]>([0, 0])
+  const [selectionPoint, setSelectionPoint] = useState<[number, number]>([0, 0])
+  const [selectionBounds, setSelectionBounds] = useState<[number, number, number, number] | null>(
+    null
+  )
+
+  const [multipleSelection, setMultipleSelection] = useState<boolean>(false)
 
   const emptyLayers: EdgeView[][] = []
   const [edgeLayerGroups, setEdgeLayerGroups] = useState(emptyLayers)
@@ -263,7 +267,6 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   }, [])
 
   const _handleViewStateChange = (state) => {
-    console.log('VS::', state)
     const {viewState, interactionState} = state
     const {zoom} = viewState
     const {isZooming, isPanning} = interactionState
@@ -280,10 +283,10 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
 
     if (zoom > 1.5 || zoom < -2) {
       setEdgeLayerDepth(2)
-      setPickableLocal(false)
+      // setPickableLocal(false)
     } else {
       setEdgeLayerDepth(1)
-      setPickableLocal(true)
+      // setPickableLocal(true)
     }
 
     if (isZooming || isPanning) {
@@ -320,7 +323,9 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     render3d: render3d === undefined ? false : render3d,
     eventHandlers,
     nodePickable: pickable,
-    edgePickable: pickable && pickableLocal ? true : false
+    edgePickable: pickable,
+    bounds: selectionBounds,
+    multipleSelection: multipleSelection
   }
 
   const layers = [new GraphLayer(layerProps)]
@@ -345,7 +350,6 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
 
   class GraphController extends OrthographicController {
     handleEvent(event) {
-      console.log('EVV! ', event)
       if (event.type === 'keydown') {
         // do something
         console.log('KEY EVV! ', event)
@@ -369,15 +373,52 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       views={view}
       layers={layers}
       onDragStart={(info) => {
+        setMultipleSelection(true)
         setShowEdges(false)
         console.log('---------->>>>Start', info)
+        const startPoint: [number, number] = info.coordinate
+        setSelectionStart(startPoint)
+        setSelectionPoint([info.x, info.y])
       }}
       onDrag={(info, event) => {
-        console.log('----------ON', info, event)
+        const endPoint: [number, number] = info.coordinate
+        if (
+          selectionStart === undefined ||
+          selectionStart === null ||
+          endPoint === undefined ||
+          endPoint === undefined
+        ) {
+          return
+        }
+
+        const selectedBound: [number, number, number, number] = [
+          selectionStart[0],
+          selectionStart[1],
+          endPoint[0],
+          endPoint[1]
+        ]
+        setSelectionBounds(selectedBound)
       }}
       onDragEnd={(info) => {
         setShowEdges(true)
-        console.log('---------->>>>End', info)
+
+        const x: number = selectionPoint[0]
+        const y: number = selectionPoint[1]
+        const x2: number = info.x
+        const y2: number = info.y
+
+        const width: number = Math.abs(x2 - x)
+        const height: number = Math.abs(y2 - y)
+
+        const newSelection = deckRef.pickObjects({x, y, width, height})
+        // const newSelection = deckRef.pickObjects({x, y, width, height, layerIds: ['node-layer']})
+
+        console.log('---------->>>>End Selection', newSelection)
+        setSelectionBounds(null)
+
+        setTimeout(() => {
+          setMultipleSelection(false)
+        }, 100)
       }}
       onViewStateChange={(state) => {
         _handleViewStateChange(state)
@@ -386,10 +427,12 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
         _handleClick(layer, object)
 
         setShowLabels(false)
-        // deckRef.pickMultipleObjects({x: 0, y: 0, radius: 1000})
+        console.log('## CLR:', layer, object)
+        setSelectionBounds(null)
       }}
       onDblClick={(layer, object) => {
         console.log('## DBL:', layer, object)
+        setSelectionBounds(null)
       }}
       onResize={(size) => {
         handleResize(size, nodeViewList)
