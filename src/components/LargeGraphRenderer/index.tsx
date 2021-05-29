@@ -16,6 +16,7 @@ import NodeView from '../../models/NodeView'
 import EdgeView from '../../models/EdgeView'
 import GraphView from '../../models/GraphView'
 import CommandProxy from './CommandProxy'
+import {getArea} from '../../utils/selection-util'
 
 const DEF_BG_COLOR = '#555555'
 
@@ -244,6 +245,8 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     null
   )
 
+  const [isBoxSelection, setIsBoxSelection] = useState<boolean>(false)
+
   const [multipleSelection, setMultipleSelection] = useState<boolean>(false)
 
   const emptyLayers: EdgeView[][] = []
@@ -264,6 +267,9 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     const eLayers = createMultipleLayers([...edgeViewList])
 
     setEdgeLayerGroups(eLayers)
+
+    // Watch keyup event for selection
+    addEventListener('keyup', logKey)
   }, [])
 
   const _handleViewStateChange = (state) => {
@@ -351,15 +357,19 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   class GraphController extends OrthographicController {
     handleEvent(event) {
       if (event.type === 'keydown') {
-        // do something
-        console.log('KEY EVV! ', event)
-      } else if (event.type === 'keyup') {
-        // do something
-        console.log('KEY UPPPPPPPPPPPPPPPPPPPP! ', event)
+        if (event.key === 'Shift') {
+          // console.log('Shift KEY EVV! ', event)
+          setIsBoxSelection(true)
+        }
+        super.handleEvent(event)
       } else {
         super.handleEvent(event)
       }
     }
+  }
+
+  function logKey(e) {
+    // console.log('Key UP', e)
   }
 
   return (
@@ -373,6 +383,10 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       views={view}
       layers={layers}
       onDragStart={(info) => {
+        if (!isBoxSelection) {
+          return
+        }
+
         setMultipleSelection(true)
         setShowEdges(false)
         console.log('---------->>>>Start', info)
@@ -381,6 +395,9 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
         setSelectionPoint([info.x, info.y])
       }}
       onDrag={(info, event) => {
+        if (!isBoxSelection) {
+          return
+        }
         const endPoint: [number, number] = info.coordinate
         if (
           selectionStart === undefined ||
@@ -400,25 +417,28 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
         setSelectionBounds(selectedBound)
       }}
       onDragEnd={(info) => {
-        setShowEdges(true)
-
-        const x: number = selectionPoint[0]
-        const y: number = selectionPoint[1]
+        if (!isBoxSelection) {
+          return
+        }
+        const x1: number = selectionPoint[0]
+        const y1: number = selectionPoint[1]
         const x2: number = info.x
         const y2: number = info.y
 
-        const width: number = Math.abs(x2 - x)
-        const height: number = Math.abs(y2 - y)
-
-        const newSelection = deckRef.pickObjects({x, y, width, height})
-        // const newSelection = deckRef.pickObjects({x, y, width, height, layerIds: ['node-layer']})
-
-        console.log('---------->>>>End Selection', newSelection)
+        const area = getArea(x1, y1, x2, y2)
+        const {x, y, width, height} = area
+        const layerIds: string[] = ['node-layer']
+        const newSelection = deckRef.pickObjects({x, y, width, height, layerIds})
+        console.log('---------->>>>End Selection: start', x1, y1)
+        console.log('---------->>>>End Selection: end', x2, y2, area)
+        console.log('---------->>>>Selected', newSelection)
         setSelectionBounds(null)
 
         setTimeout(() => {
           setMultipleSelection(false)
         }, 100)
+        setShowEdges(true)
+        setIsBoxSelection(false)
       }}
       onViewStateChange={(state) => {
         _handleViewStateChange(state)

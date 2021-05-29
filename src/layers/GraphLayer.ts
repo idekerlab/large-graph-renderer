@@ -6,6 +6,8 @@ import GraphLayerProps from './GraphLayerProps'
 import {createSelectionLayer} from './SelectionLayer'
 
 class GraphLayer extends CompositeLayer<GraphLayerProps> {
+  multiple: boolean
+
   constructor(props: GraphLayerProps) {
     super(props)
   }
@@ -15,27 +17,27 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
   }
 
   getPickingInfo(pickingInfo) {
-    const currentProps = this['props']
+    // const currentProps = this['props']
     const {mode, info} = pickingInfo
 
-    // @ts-ignore
-    const {onNodeClick, onEdgeClick} = currentProps.eventHandlers
+    // // @ts-ignore
+    // const {onNodeClick, onEdgeClick} = currentProps.eventHandlers
 
-    if (mode === 'query' && currentProps.multipleSelection === false) {
-      console.log('PICK info called::', pickingInfo)
-      const isNode = info.object.position ? true : false
+    // if (mode === 'query' && currentProps.multipleSelection === false) {
+    //   console.log('PICK info called::', pickingInfo)
+    //   const isNode = info.object.position ? true : false
 
-      if (isNode) {
-        onNodeClick(info.object, info.x, info.y)
-        info.object.selected = true
-      } else {
-        onEdgeClick(info.object, info.x, info.y)
-        info.object.selected = true
-      }
-    } else {
-      // @ts-ignore
-      this.props.eventHandlers.onNodeMouseover(info)
-    }
+    //   if (isNode) {
+    //     onNodeClick(info.object, info.x, info.y)
+    //     info.object.selected = true
+    //   } else {
+    //     onEdgeClick(info.object, info.x, info.y)
+    //     info.object.selected = true
+    //   }
+    // } else {
+    //   // @ts-ignore
+    //   this.props.eventHandlers.onNodeMouseover(info)
+    // }
     return info
   }
 

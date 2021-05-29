@@ -26,14 +26,14 @@ const createSelectionLayer = (points: [number, number, number, number]) => {
         bound: getBounds(points)
       }
     ],
-    pickable: true,
-    stroked: true,
+    pickable: false,
+    stroked: false,
     filled: true,
-    wireframe: true,
+    wireframe: false,
     lineWidthMinPixels: 1,
     getPolygon: (d) => d.bound,
     getElevation: 0,
-    getFillColor: [200, 0, 0, 150],
+    getFillColor: [255, 249, 196, 100],
     getLineColor: [80, 80, 80],
     getLineWidth: 1
   })

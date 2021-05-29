@@ -10,6 +10,7 @@ const create2DLayer = (
   pickable: boolean
 ): object =>
   new LineLayer({
+    id: 'edge-layer',
     data: edgeViews,
     getSourcePosition: (e: EdgeView) => {
       const s = nodeViewMap.get(e.s)
