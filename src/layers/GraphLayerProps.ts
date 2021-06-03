@@ -15,6 +15,8 @@ type GraphLayerProps = {
   edgePickable?: boolean
   bounds: [number, number, number, number] | null
   multipleSelection: boolean
+  selectedNodes: Set<string>
+  selectedEdges: Set<string>
 }
 
 export default GraphLayerProps

@@ -212,29 +212,11 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     }
   }
 
-  const fitContent = (viewportSize: ViewportSize, bounds: Bounds, nodeViews: NodeView[]) => {
-    const originalWidth = bounds.maxX - bounds.minX
-    const originalHeight = bounds.maxY - bounds.minY
-
-    const ratioX = originalWidth / viewportSize.width
-
-    let idx = nodeViews.length
-    while (idx--) {
-      const nv = nodeViews[idx]
-      const x = nv.position[0]
-      const y = nv.position[1]
-      nv.position[0] = x * 0.1
-      nv.position[1] = y * 0.1
-      nodeViews[idx] = nv
-    }
-
-    return nodeViewList
-  }
-
   baseStyle.backgroundColor = backgroundColor
 
+  const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set<string>())
   // For performance, show/hide edges/labels dynamically
-  const [pickableLocal, setPickableLocal] = useState(true)
+
   const [showEdges, setShowEdges] = useState(true)
   const [showLabels, setShowLabels] = useState(false)
   const [edgeLayerDepth, setEdgeLayerDepth] = useState(1)
@@ -331,7 +313,9 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     nodePickable: pickable,
     edgePickable: pickable,
     bounds: selectionBounds,
-    multipleSelection: multipleSelection
+    multipleSelection: multipleSelection,
+    selectedNodes: selectedNodes,
+    selectedEdges: selectedNodes
   }
 
   const layers = [new GraphLayer(layerProps)]
@@ -369,8 +353,10 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   }
 
   function logKey(e) {
-    // console.log('Key UP', e)
+    console.log('Key UP', e)
   }
+
+  const getSelectedEdges = () => {}
 
   return (
     <DeckGL
@@ -384,11 +370,12 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       layers={layers}
       onDragStart={(info) => {
         if (!isBoxSelection) {
+          console.log('---------->>>>No', info)
           return
         }
 
         setMultipleSelection(true)
-        setShowEdges(false)
+        // setShowEdges(false)
         console.log('---------->>>>Start', info)
         const startPoint: [number, number] = info.coordinate
         setSelectionStart(startPoint)
@@ -428,16 +415,27 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
         const area = getArea(x1, y1, x2, y2)
         const {x, y, width, height} = area
         const layerIds: string[] = ['node-layer']
-        const newSelection = deckRef.pickObjects({x, y, width, height, layerIds})
+        const newSelection = deckRef.pickObjects({x, y, width, height})
+
+        let selectedLen = newSelection.length
         console.log('---------->>>>End Selection: start', x1, y1)
-        console.log('---------->>>>End Selection: end', x2, y2, area)
-        console.log('---------->>>>Selected', newSelection)
+        console.log('---------->>>>End Selection: end len', selectedLen, x2, y2, area)
+
+        const selectedId = new Set<string>()
+        while (selectedLen--) {
+          const item = newSelection[selectedLen].object
+          // item.selected = true
+          selectedId.add(item.id)
+        }
+        setSelectedNodes(selectedId)
+
+        console.log('---------->>>>Selected', selectedId, newSelection)
         setSelectionBounds(null)
 
         setTimeout(() => {
           setMultipleSelection(false)
         }, 100)
-        setShowEdges(true)
+        // setShowEdges(true)
         setIsBoxSelection(false)
       }}
       onViewStateChange={(state) => {
@@ -449,6 +447,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
         setShowLabels(false)
         console.log('## CLR:', layer, object)
         setSelectionBounds(null)
+        setSelectedNodes(new Set<string>())
       }}
       onDblClick={(layer, object) => {
         console.log('## DBL:', layer, object)

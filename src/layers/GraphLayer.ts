@@ -17,27 +17,26 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
   }
 
   getPickingInfo(pickingInfo) {
-    // const currentProps = this['props']
+    const currentProps = this['props']
     const {mode, info} = pickingInfo
 
-    // // @ts-ignore
-    // const {onNodeClick, onEdgeClick} = currentProps.eventHandlers
+    if (mode === 'query' && currentProps.multipleSelection === false) {
+      // @ts-ignore
+      const {onNodeClick, onEdgeClick} = currentProps.eventHandlers
+      console.log('PICK info called::', pickingInfo)
+      const isNode = info.object.position ? true : false
 
-    // if (mode === 'query' && currentProps.multipleSelection === false) {
-    //   console.log('PICK info called::', pickingInfo)
-    //   const isNode = info.object.position ? true : false
-
-    //   if (isNode) {
-    //     onNodeClick(info.object, info.x, info.y)
-    //     info.object.selected = true
-    //   } else {
-    //     onEdgeClick(info.object, info.x, info.y)
-    //     info.object.selected = true
-    //   }
-    // } else {
-    //   // @ts-ignore
-    //   this.props.eventHandlers.onNodeMouseover(info)
-    // }
+      if (isNode) {
+        onNodeClick(info.object, info.x, info.y)
+        info.object.selected = true
+      } else {
+        onEdgeClick(info.object, info.x, info.y)
+        info.object.selected = true
+      }
+    } else {
+      // // @ts-ignore
+      // this.props.eventHandlers.onNodeMouseover(info)
+    }
     return info
   }
 
@@ -53,26 +52,33 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
       render3d,
       nodePickable,
       edgePickable,
-      bounds
+      bounds,
+      selectedNodes,
+      selectedEdges
     } = this['props']
-    const nodeLayer = createNodeLayer(nodeViews, nodePickable)
+
+    // Nodes
+    const nodeLayer = createNodeLayer(nodeViews, nodePickable, selectedNodes)
+
+    // Node labels
     const nodeLabelLayer = createLabelLayer(nodeViews, showLabels)
 
+    // Selection box
     const selectionLayer = createSelectionLayer(bounds)
 
-    if (showEdges) {
-      const edgeLayers = createEdgeLayers(
-        edgeViews,
-        nodeViewMap,
-        render3d,
-        showEdges,
-        edgePickable,
-        edgeLayerDepth
-      )
-      return [...edgeLayers, nodeLayer, nodeLabelLayer]
-    }
+    // if (true) {
 
-    return [nodeLayer, nodeLabelLayer, selectionLayer]
+    // Edges in multiple layers
+    const edgeLayers = createEdgeLayers(
+      edgeViews,
+      nodeViewMap,
+      render3d,
+      showEdges,
+      edgePickable,
+      edgeLayerDepth,
+      selectedEdges
+    )
+    return [...edgeLayers, nodeLayer, nodeLabelLayer, selectionLayer]
   }
 }
 
