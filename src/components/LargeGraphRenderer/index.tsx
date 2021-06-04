@@ -10,7 +10,7 @@ import GraphLayer from '../../layers/GraphLayer'
 import GraphLayerProps from '../../layers/GraphLayerProps'
 import RendererProps from './RendererProps'
 import EventHandlers from '../../layers/EventHandlers'
-import {createMultipleLayers} from '../../layers/EdgeLayer'
+import {createEdgeLayers, createMultipleLayers} from '../../layers/EdgeLayer'
 
 import NodeView from '../../models/NodeView'
 import EdgeView from '../../models/EdgeView'
@@ -212,9 +212,12 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     }
   }
 
-  baseStyle.backgroundColor = backgroundColor
+  baseStyle.backgroundColor = '#555555'
+  // baseStyle.backgroundColor = backgroundColor
 
+  const [flag, setFlag] = useState<boolean>(false)
   const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set<string>())
+  const [selectedEdges, setSelectedEdges] = useState<Set<string>>(new Set<string>())
   // For performance, show/hide edges/labels dynamically
 
   const [showEdges, setShowEdges] = useState(true)
@@ -223,9 +226,8 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
 
   const [selectionStart, setSelectionStart] = useState<[number, number]>([0, 0])
   const [selectionPoint, setSelectionPoint] = useState<[number, number]>([0, 0])
-  const [selectionBounds, setSelectionBounds] = useState<[number, number, number, number] | null>(
-    null
-  )
+  const [selectionBounds, setSelectionBounds] =
+    useState<[number, number, number, number] | null>(null)
 
   const [isBoxSelection, setIsBoxSelection] = useState<boolean>(false)
 
@@ -315,7 +317,8 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     bounds: selectionBounds,
     multipleSelection: multipleSelection,
     selectedNodes: selectedNodes,
-    selectedEdges: selectedNodes
+    selectedEdges: selectedEdges,
+    test: flag
   }
 
   const layers = [new GraphLayer(layerProps)]
@@ -356,7 +359,13 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     console.log('Key UP', e)
   }
 
-  const getSelectedEdges = () => {}
+  const evs = layerProps.edgeViews
+  const eIds = new Set<string>()
+  if (evs !== undefined && evs.length > 0) {
+    evs[0].forEach((ev) => {
+      eIds.add(ev['id'])
+    })
+  }
 
   return (
     <DeckGL
@@ -421,15 +430,29 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
         console.log('---------->>>>End Selection: start', x1, y1)
         console.log('---------->>>>End Selection: end len', selectedLen, x2, y2, area)
 
-        const selectedId = new Set<string>()
+        const selectedNodeIds = new Set<string>()
+        const selectedEdgeIds = new Set<string>()
         while (selectedLen--) {
           const item = newSelection[selectedLen].object
+          newSelection[selectedLen].color = [0, 200, 0, 100]
           // item.selected = true
-          selectedId.add(item.id)
+          if (item.position !== undefined) {
+            selectedNodeIds.add(item.id)
+          } else {
+            selectedEdgeIds.add(item.id)
+          }
         }
-        setSelectedNodes(selectedId)
+        setSelectedNodes(selectedNodeIds)
+        setSelectedEdges(selectedEdgeIds)
 
-        console.log('---------->>>>Selected', selectedId, newSelection)
+        console.log(
+          '---------->>>>Selected 2',
+          eIds,
+          layerProps.edgeViews,
+          selectedNodeIds,
+          selectedEdgeIds,
+          newSelection
+        )
         setSelectionBounds(null)
 
         setTimeout(() => {
@@ -437,6 +460,9 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
         }, 100)
         // setShowEdges(true)
         setIsBoxSelection(false)
+
+        // Set dirty flag
+        setFlag(!flag)
       }}
       onViewStateChange={(state) => {
         _handleViewStateChange(state)
@@ -445,9 +471,13 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
         _handleClick(layer, object)
 
         setShowLabels(false)
-        console.log('## CLR:', layer, object)
+        console.log('## CLR:', flag, layer, object)
         setSelectionBounds(null)
         setSelectedNodes(new Set<string>())
+        setSelectedEdges(new Set<string>())
+
+        // Toggle flag to clear selection in the view
+        setFlag(!flag)
       }}
       onDblClick={(layer, object) => {
         console.log('## DBL:', layer, object)

@@ -54,7 +54,8 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
       edgePickable,
       bounds,
       selectedNodes,
-      selectedEdges
+      selectedEdges,
+      test
     } = this['props']
 
     // Nodes
@@ -66,8 +67,6 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
     // Selection box
     const selectionLayer = createSelectionLayer(bounds)
 
-    // if (true) {
-
     // Edges in multiple layers
     const edgeLayers = createEdgeLayers(
       edgeViews,
@@ -76,9 +75,11 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
       showEdges,
       edgePickable,
       edgeLayerDepth,
-      selectedEdges
+      selectedEdges,
+      test
     )
     return [...edgeLayers, nodeLayer, nodeLabelLayer, selectionLayer]
+    // return [nodeLayer, nodeLabelLayer, selectionLayer]
   }
 }
 

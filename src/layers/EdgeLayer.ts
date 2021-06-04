@@ -8,7 +8,8 @@ const create2DLayer = (
   nodeViewMap: Map<string, NodeView>,
   showEdges: boolean,
   pickable: boolean,
-  selectedEdges: Set<string>
+  selectedEdges: Set<string>,
+  test: boolean
 ): object =>
   new LineLayer({
     id: 'edge-layer',
@@ -28,18 +29,20 @@ const create2DLayer = (
       return [t.position[0], t.position[1]]
     },
 
-    getColor: (e) => (selectedEdges.has(e.id) ? [255, 50, 50, 250] : [100, 100, 100, 150]),
+    getColor: (e: EdgeView) => (selectedEdges.has(e.id) ? [255, 0, 0, 125] : [0, 255, 0, 20]),
+    // getColor: (e: EdgeView) => {
+    //   return [2, 250, 0, 10]
+    // },
+    getWidth: (e: EdgeView) => (e.width ? e.width : 1),
     updateTriggers: {
-      getColor: edgeViews ? edgeViews[0] : null
-      // getColor: selectedEdges
+      getColor: test,
+      getWidth: test
     },
-    strokeWidth: (e: EdgeView) => (e.width ? e.width : 0.7),
     visible: showEdges,
     pickable,
     widthScale: 1,
     autoHighlight: true,
-    highlightedObjectIndex: 1,
-    highlightColor: [0, 255, 0]
+    highlightColor: [255, 5, 0]
   })
 
 const create3DLayer = (
@@ -83,7 +86,8 @@ const createEdgeLayers = (
   showEdges: boolean,
   pickable: boolean,
   depth: number,
-  selectedEdges: Set<string>
+  selectedEdges: Set<string>,
+  test: boolean
 ): object[] => {
   if (render3d) {
     const layers3D = [create3DLayer(edgeViews[0], nodeViewMap, showEdges, pickable)]
@@ -91,7 +95,14 @@ const createEdgeLayers = (
   } else {
     const layers: object[] = []
     edgeViews.forEach((viewGroup: EdgeView[]) => {
-      const newLayer = create2DLayer(viewGroup, nodeViewMap, showEdges, pickable, selectedEdges)
+      const newLayer = create2DLayer(
+        viewGroup,
+        nodeViewMap,
+        showEdges,
+        pickable,
+        selectedEdges,
+        test
+      )
       layers.push(newLayer)
     })
     return layers
