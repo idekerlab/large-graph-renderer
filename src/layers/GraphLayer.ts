@@ -6,8 +6,6 @@ import GraphLayerProps from './GraphLayerProps'
 import {createSelectionLayer} from './SelectionLayer'
 
 class GraphLayer extends CompositeLayer<GraphLayerProps> {
-  multiple: boolean
-
   constructor(props: GraphLayerProps) {
     super(props)
   }
@@ -19,6 +17,10 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
   getPickingInfo(pickingInfo) {
     const currentProps = this['props']
     const {mode, info} = pickingInfo
+
+    if (currentProps.disableClick) {
+      return info
+    }
 
     if (mode === 'query' && currentProps.multipleSelection === false) {
       // @ts-ignore
@@ -41,7 +43,6 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
   }
 
   renderLayers(): any[] {
-    // @ts-ignore
     const {
       nodeViews,
       nodeViewMap,
@@ -55,7 +56,7 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
       bounds,
       selectedNodes,
       selectedEdges,
-      test
+      updated
     } = this['props']
 
     // Nodes
@@ -76,7 +77,7 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
       edgePickable,
       edgeLayerDepth,
       selectedEdges,
-      test
+      updated
     )
     return [...edgeLayers, nodeLayer, nodeLabelLayer, selectionLayer]
     // return [nodeLayer, nodeLabelLayer, selectionLayer]

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react'
+import React, {VFC, useState, useEffect, useRef, useMemo, useCallback} from 'react'
 import DeckGL from '@deck.gl/react'
 import {
   OrthographicView,
@@ -100,7 +100,7 @@ const DUMMY_PROXY = (proxy) => {
 /**
  * Functional React component for large graph rendering using Deck.gl
  */
-const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
+const LargeGraphRenderer: VFC<RendererProps> = ({
   graphView,
   render3d,
   onNodeClick,
@@ -187,10 +187,6 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   const proxy = new CommandProxy(fitContent2, _handleZoom)
 
   const handleLoad = (deckRef, graphView: GraphView) => {
-    const deckGlInstance = deckRef.deck
-
-    console.log('$ON LOAD', deckGlInstance)
-    const {width, height} = deckGlInstance
     const {nodeViews} = graphView
     const nodeViewList: NodeView[] = [...nodeViews.values()]
 
@@ -212,10 +208,11 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     }
   }
 
-  baseStyle.backgroundColor = '#555555'
-  // baseStyle.backgroundColor = backgroundColor
+  baseStyle.backgroundColor = backgroundColor
 
-  const [flag, setFlag] = useState<boolean>(false)
+  const [disableClick, setDisableClick] = useState<boolean>(false)
+  //
+  const [dataUpdated, setDataUpdated] = useState<boolean>(false)
   const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set<string>())
   const [selectedEdges, setSelectedEdges] = useState<Set<string>>(new Set<string>())
   // For performance, show/hide edges/labels dynamically
@@ -229,9 +226,9 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
   const [selectionBounds, setSelectionBounds] =
     useState<[number, number, number, number] | null>(null)
 
-  const [isBoxSelection, setIsBoxSelection] = useState<boolean>(false)
+  // const [isBoxSelection, setIsBoxSelection] = useState<boolean>(false)
 
-  const [multipleSelection, setMultipleSelection] = useState<boolean>(false)
+  const [isShiftDown, setIsShiftDown] = useState<boolean>(false)
 
   const emptyLayers: EdgeView[][] = []
   const [edgeLayerGroups, setEdgeLayerGroups] = useState(emptyLayers)
@@ -243,6 +240,7 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     }
   }, [deck])
 
+  // Executed once after initialization
   useEffect(() => {
     // Create layer groups here.
     const {edgeViews} = graphView
@@ -253,10 +251,11 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     setEdgeLayerGroups(eLayers)
 
     // Watch keyup event for selection
-    addEventListener('keyup', logKey)
+    addEventListener('keydown', _handleKeyDown)
+    addEventListener('keyup', _handleKeyUp)
   }, [])
 
-  const _handleViewStateChange = (state) => {
+  const _handleViewStateChange = (state): void => {
     const {viewState, interactionState} = state
     const {zoom} = viewState
     const {isZooming, isPanning} = interactionState
@@ -315,10 +314,11 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     nodePickable: pickable,
     edgePickable: pickable,
     bounds: selectionBounds,
-    multipleSelection: multipleSelection,
+    multipleSelection: isShiftDown,
     selectedNodes: selectedNodes,
     selectedEdges: selectedEdges,
-    test: flag
+    updated: dataUpdated,
+    disableClick
   }
 
   const layers = [new GraphLayer(layerProps)]
@@ -334,37 +334,18 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
     }
   }
 
-  const _handleKeyPress = (event) => {
-    console.log('Key Event press here! ', event.key)
-    if (event.key === 'Enter') {
-      console.log('enter press here! ')
+  const _handleKeyDown = (event) => {
+    console.log('Key DOWN', event)
+    if (event.key === 'Shift') {
+      setIsShiftDown(true)
     }
   }
 
-  class GraphController extends OrthographicController {
-    handleEvent(event) {
-      if (event.type === 'keydown') {
-        if (event.key === 'Shift') {
-          // console.log('Shift KEY EVV! ', event)
-          setIsBoxSelection(true)
-        }
-        super.handleEvent(event)
-      } else {
-        super.handleEvent(event)
-      }
+  const _handleKeyUp = (event) => {
+    console.log('Key UP', event)
+    if (event.key === 'Shift') {
+      setIsShiftDown(false)
     }
-  }
-
-  function logKey(e) {
-    console.log('Key UP', e)
-  }
-
-  const evs = layerProps.edgeViews
-  const eIds = new Set<string>()
-  if (evs !== undefined && evs.length > 0) {
-    evs[0].forEach((ev) => {
-      eIds.add(ev['id'])
-    })
   }
 
   return (
@@ -374,24 +355,20 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
       height="100%"
       style={baseStyle}
       initialViewState={initialViewState2}
-      controller={GraphController}
+      controller={true}
       views={view}
       layers={layers}
       onDragStart={(info) => {
-        if (!isBoxSelection) {
-          console.log('---------->>>>No', info)
+        setDisableClick(true)
+        if (!isShiftDown) {
           return
         }
-
-        setMultipleSelection(true)
-        // setShowEdges(false)
-        console.log('---------->>>>Start', info)
         const startPoint: [number, number] = info.coordinate
         setSelectionStart(startPoint)
         setSelectionPoint([info.x, info.y])
       }}
       onDrag={(info, event) => {
-        if (!isBoxSelection) {
+        if (!isShiftDown) {
           return
         }
         const endPoint: [number, number] = info.coordinate
@@ -413,7 +390,9 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
         setSelectionBounds(selectedBound)
       }}
       onDragEnd={(info) => {
-        if (!isBoxSelection) {
+        setDisableClick(false)
+
+        if (!isShiftDown) {
           return
         }
         const x1: number = selectionPoint[0]
@@ -423,11 +402,9 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
 
         const area = getArea(x1, y1, x2, y2)
         const {x, y, width, height} = area
-        const layerIds: string[] = ['node-layer']
         const newSelection = deckRef.pickObjects({x, y, width, height})
 
         let selectedLen = newSelection.length
-        console.log('---------->>>>End Selection: start', x1, y1)
         console.log('---------->>>>End Selection: end len', selectedLen, x2, y2, area)
 
         const selectedNodeIds = new Set<string>()
@@ -447,22 +424,16 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
 
         console.log(
           '---------->>>>Selected 2',
-          eIds,
           layerProps.edgeViews,
           selectedNodeIds,
           selectedEdgeIds,
           newSelection
         )
         setSelectionBounds(null)
-
-        setTimeout(() => {
-          setMultipleSelection(false)
-        }, 100)
-        // setShowEdges(true)
-        setIsBoxSelection(false)
+        setIsShiftDown(false)
 
         // Set dirty flag
-        setFlag(!flag)
+        setDataUpdated(!dataUpdated)
       }}
       onViewStateChange={(state) => {
         _handleViewStateChange(state)
@@ -471,13 +442,12 @@ const LargeGraphRenderer: React.FunctionComponent<RendererProps> = ({
         _handleClick(layer, object)
 
         setShowLabels(false)
-        console.log('## CLR:', flag, layer, object)
         setSelectionBounds(null)
         setSelectedNodes(new Set<string>())
         setSelectedEdges(new Set<string>())
 
         // Toggle flag to clear selection in the view
-        setFlag(!flag)
+        setDataUpdated(!dataUpdated)
       }}
       onDblClick={(layer, object) => {
         console.log('## DBL:', layer, object)

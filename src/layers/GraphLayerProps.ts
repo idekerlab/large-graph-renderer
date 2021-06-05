@@ -17,7 +17,8 @@ type GraphLayerProps = {
   multipleSelection: boolean
   selectedNodes: Set<string>
   selectedEdges: Set<string>
-  test: boolean
+  updated: boolean
+  disableClick: boolean
 }
 
 export default GraphLayerProps

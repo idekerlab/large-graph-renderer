@@ -9,7 +9,7 @@ const create2DLayer = (
   showEdges: boolean,
   pickable: boolean,
   selectedEdges: Set<string>,
-  test: boolean
+  updated: boolean
 ): object =>
   new LineLayer({
     id: 'edge-layer',
@@ -29,14 +29,11 @@ const create2DLayer = (
       return [t.position[0], t.position[1]]
     },
 
-    getColor: (e: EdgeView) => (selectedEdges.has(e.id) ? [255, 0, 0, 125] : [0, 255, 0, 20]),
-    // getColor: (e: EdgeView) => {
-    //   return [2, 250, 0, 10]
-    // },
-    getWidth: (e: EdgeView) => (e.width ? e.width : 1),
+    getColor: (e: EdgeView) => (selectedEdges.has(e.id) ? [255, 0, 0, 125] : e.color),
+    getWidth: (e: EdgeView) => (e.width ? e.width : 2),
     updateTriggers: {
-      getColor: test,
-      getWidth: test
+      getColor: updated,
+      getWidth: updated
     },
     visible: showEdges,
     pickable,
@@ -134,8 +131,6 @@ const createMultipleLayers = (edgeViews: EdgeView[]): EdgeView[][] => {
       }
     }
   }
-
-  console.log('************ Layers:', layers)
 
   return layers
 }

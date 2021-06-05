@@ -24,10 +24,9 @@ const createNodeLayer = (
     getPosition: (d: NodeView): number[] => [d.position[0], d.position[1]],
     getFillColor: (d: NodeView): [number, number, number, number?] | undefined =>
       selectedNodes.has(d.id) ? [255, 2, 2, 255] : d.color,
-    getRadius: (d: NodeView): number => (d.size ? d.size : 1),
+    getRadius: (d: NodeView): number => (d.size ? d.size : 3),
     pickable,
     updateTriggers: {
-      // getColor: nodeViews ? nodeViews[0] : null
       getFillColor: selectedNodes
     },
     autoHighlight: true,

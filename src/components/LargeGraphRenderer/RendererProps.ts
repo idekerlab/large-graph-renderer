@@ -8,11 +8,11 @@ interface RendererProps {
   render3d?: boolean
 
   // Optional: Event Handlers
-  onNodeClick?: Function
-  onEdgeClick?: Function
-  onBackgroundClick?: Function
-  onNodeMouseover?: Function
-  onEdgeMouseover?: Function
+  onNodeClick?: (event: any, x: number, y: number) => void
+  onEdgeClick?: (event: any, x: number, y: number) => void
+  onBackgroundClick?: (event: any) => void
+  onNodeMouseover?: (event: any) => void
+  onEdgeMouseover?: (event: any) => void
 
   // TODO: how should this handle command, such as "fit content??"
 
