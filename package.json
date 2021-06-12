@@ -28,7 +28,8 @@
   "dependencies": {
     "@deck.gl/core": "^8.4.16",
     "@deck.gl/layers": "^8.4.16",
-    "@deck.gl/react": "^8.4.16"
+    "@deck.gl/react": "^8.4.16",
+    "flatbush": "^3.3.0"
   },
   "devDependencies": {
     "@types/jest": "^26.0.3",

@@ -16,7 +16,7 @@ import NodeView from '../../models/NodeView'
 import EdgeView from '../../models/EdgeView'
 import GraphView from '../../models/GraphView'
 import CommandProxy from './CommandProxy'
-import {getArea} from '../../utils/selection-util'
+import {getArea, initEdgeIndex, initSpatialIndex} from '../../utils/selection-util'
 
 const DEF_BG_COLOR = '#555555'
 
@@ -233,6 +233,9 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
   const emptyLayers: EdgeView[][] = []
   const [edgeLayerGroups, setEdgeLayerGroups] = useState(emptyLayers)
 
+  const [spatialIndex, setSpatialIndex] = useState(null)
+  const [edgeIndex, setEdgeIndex] = useState(null)
+
   useEffect(() => {
     const deckGlRef = deck.current
     if (deckGlRef !== null && deckGlRef !== undefined) {
@@ -402,17 +405,28 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
 
         const area = getArea(x1, y1, x2, y2)
         const {x, y, width, height} = area
-        const newSelection = deckRef.pickObjects({x, y, width, height})
 
-        let selectedLen = newSelection.length
-        console.log('---------->>>>End Selection: end len', selectedLen, x2, y2, area)
+        const {viewport} = info
+        const {nodeViews, edgeViews} = graphView
+        const nvList: NodeView[] = [...nodeViews.values()]
+        const evList: EdgeView[] = [...edgeViews.values()]
+        const p1 = viewport.unproject([x, y])
+        const p2 = viewport.unproject([x + width, y + height])
+        let result = spatialIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => nvList[i])
+        const result2 = edgeIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
+
+        result = [...result, ...result2]
+        console.log('nodesIN4===', result, info)
+        // const newSelection = deckRef.pickObjects({x, y, width, height})
+
+        // let selectedLen = newSelection.length
+        let selectedLen = result.length
+        // console.log('---------->>>>End Selection: end len', selectedLen, x2, y2, area)
 
         const selectedNodeIds = new Set<string>()
         const selectedEdgeIds = new Set<string>()
         while (selectedLen--) {
-          const item = newSelection[selectedLen].object
-          newSelection[selectedLen].color = [0, 200, 0, 100]
-          // item.selected = true
+          const item = result[selectedLen]
           if (item.position !== undefined) {
             selectedNodeIds.add(item.id)
           } else {
@@ -426,8 +440,8 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
           '---------->>>>Selected 2',
           layerProps.edgeViews,
           selectedNodeIds,
-          selectedEdgeIds,
-          newSelection
+          selectedEdgeIds
+          // newSelection
         )
         setSelectionBounds(null)
         setIsShiftDown(false)
@@ -457,11 +471,20 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
         handleResize(size, nodeViewList)
       }}
       onLoad={() => {
+        console.log('------------------ Loaded ------------', graphView)
+        setSpatialIndex(initSpatialIndex(graphView))
+        const {edgeViews} = graphView
+        const edgeViewList: EdgeView[] = [...edgeViews.values()]
+        setEdgeIndex(initEdgeIndex(nodeViews, edgeViewList))
+
         handleLoad(deckRef, graphView)
       }}
       onAfterRender={() => {}}
     >
-      {({x, y, width, height, viewState, viewport}) => {}}
+      {({x, y, width, height, viewState, viewport}) => {
+        const unpro = viewport.unproject([x, y])
+        console.log('UNPRO Loaded ------------', unpro, x, y, width, height, viewState, viewport)
+      }}
     </DeckGL>
   )
 }

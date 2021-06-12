@@ -2757,6 +2757,18 @@ flat-cache@^3.0.4:
     flatted "^3.1.0"
     rimraf "^3.0.2"
 
+flatbush@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/flatbush/-/flatbush-3.3.0.tgz#b68c9149107ae86d2bce6373491f404ba4f4534e"
+  integrity sha512-F3EzQvKpdmXUbFwWxLKBpytOFEGYQMCTBLuqZ4GEajFOEAvnOIBiyxW3OFSZXIOtpCS8teN6bFEpNZtnVXuDQA==
+  dependencies:
+    flatqueue "^1.2.0"
+
+flatqueue@^1.2.0:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/flatqueue/-/flatqueue-1.2.1.tgz#82f501758fc5925742fbeb478637230456157ef2"
+  integrity sha512-X86TpWS1rGuY7m382HuA9vngLeDuWA9lJvhEG+GfgKMV5onSvx5a71cl7GMbXzhWtlN9dGfqOBrpfqeOtUfGYQ==
+
 flatted@^3.1.0:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.1.1.tgz#c4b489e80096d9df1dfc97c79871aea7c617c469"
