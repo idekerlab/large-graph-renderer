@@ -46,15 +46,39 @@ const getPoints = (
   }
 }
 
-export const initSpatialIndex = (graphView: GraphView) => {
-  const {nodeViews} = graphView
+export type SpatialIndices = {
+  nodeIndex: any
+  edgeSourceIndex: any
+  edgeTargetIndex: any
+}
+
+export const initSpatialIndex = (
+  graphView: GraphView,
+  nodeViewMap: Map<string, NodeView>
+): SpatialIndices => {
+  const {nodeViews, edgeViews} = graphView
   const nodeViewList: NodeView[] = [...nodeViews.values()]
-  const numNodes = nodeViewList.length
+  const edgeViewList: EdgeView[] = [...edgeViews.values()]
+
+  const nodeIndex = initNodeIndex(nodeViewList)
+  const edgeIndices = initEdgeIndex(nodeViewMap, edgeViewList)
+
+  const indices: SpatialIndices = {
+    nodeIndex,
+    edgeSourceIndex: edgeIndices[0],
+    edgeTargetIndex: edgeIndices[1]
+  }
+
+  return indices
+}
+
+const initNodeIndex = (nodeViews: NodeView[]): any => {
+  const numNodes = nodeViews.length
   // Spatial Index
   const index = new Flatbush(numNodes)
 
   for (let i = 0; i < numNodes; i++) {
-    const nv: NodeView = nodeViewList[i]
+    const nv: NodeView = nodeViews[i]
     const x: number = nv.position[0]
     const y: number = nv.position[1]
     const size: number = nv.size
@@ -66,10 +90,14 @@ export const initSpatialIndex = (graphView: GraphView) => {
   return index
 }
 
-export const initEdgeIndex = (nodeViewMap: Map<string, NodeView>, edgeViews: EdgeView[]) => {
+const initEdgeIndex = (
+  nodeViewMap: Map<string, NodeView>,
+  edgeViews: EdgeView[]
+): [any, any] => {
   const numEdges = edgeViews.length
   // Spatial Index
-  const index = new Flatbush(numEdges)
+  const sIndex = new Flatbush(numEdges)
+  const tIndex = new Flatbush(numEdges)
 
   for (let i = 0; i < numEdges; i++) {
     const ev: EdgeView = edgeViews[i]
@@ -77,11 +105,15 @@ export const initEdgeIndex = (nodeViewMap: Map<string, NodeView>, edgeViews: Edg
     const targetNodeId = ev.s
     const sourceNode: NodeView = nodeViewMap.get(sourceNodeId)
     const targetNode: NodeView = nodeViewMap.get(targetNodeId)
-    const x: number = sourceNode.position[0]
-    const y: number = sourceNode.position[1]
-    index.add(x, y, x, y)
+    const sx: number = sourceNode.position[0]
+    const sy: number = sourceNode.position[1]
+    const tx: number = targetNode.position[0]
+    const ty: number = targetNode.position[1]
+    sIndex.add(sx, sy, sx, sy)
+    tIndex.add(tx, ty, tx, ty)
   }
-  index.finish()
+  sIndex.finish()
+  tIndex.finish()
 
-  return index
+  return [sIndex, tIndex]
 }

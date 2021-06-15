@@ -7,7 +7,7 @@ module.exports = {
     ecmaFeatures: {
       jsx: true // Allows for the parsing of JSX
     },
-    project: "./tsconfig.json",
+    project: './tsconfig.json',
     tsconfigRootDir: __dirname
   },
   settings: {
@@ -18,13 +18,12 @@ module.exports = {
   extends: [
     'plugin:react/recommended', // Uses the recommended rules from @eslint-plugin-react
     'plugin:@typescript-eslint/recommended', // Uses the recommended rules from the @typescript-eslint/eslint-plugin
-    'prettier/@typescript-eslint', // Uses eslint-config-prettier to disable ESLint rules from @typescript-eslint/eslint-plugin that would conflict with prettier
-    'plugin:prettier/recommended',
     'plugin:import/errors',
     'plugin:import/warnings',
-    'plugin:import/typescript'
+    'plugin:import/typescript',
+    'prettier'
   ],
   rules: {
-    "tsdoc/syntax": "warn"
+    'tsdoc/syntax': 'warn'
   }
 }

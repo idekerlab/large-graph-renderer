@@ -1,11 +1,6 @@
 import React, {VFC, useState, useEffect, useRef, useMemo, useCallback} from 'react'
 import DeckGL from '@deck.gl/react'
-import {
-  OrthographicView,
-  OrbitView,
-  LinearInterpolator,
-  OrthographicController
-} from '@deck.gl/core'
+import {OrthographicView, OrbitView, LinearInterpolator} from '@deck.gl/core'
 import GraphLayer from '../../layers/GraphLayer'
 import GraphLayerProps from '../../layers/GraphLayerProps'
 import RendererProps from './RendererProps'
@@ -16,7 +11,9 @@ import NodeView from '../../models/NodeView'
 import EdgeView from '../../models/EdgeView'
 import GraphView from '../../models/GraphView'
 import CommandProxy from './CommandProxy'
-import {getArea, initEdgeIndex, initSpatialIndex} from '../../utils/selection-util'
+import {getArea, SpatialIndices, initSpatialIndex} from '../../utils/selection-util'
+import {Bounds, getBounds} from '../../utils/bounds-util'
+import {DEF_EVENT_HANDLER} from './EventHandlers'
 
 const DEF_BG_COLOR = '#555555'
 
@@ -26,67 +23,6 @@ const baseStyle = {
 }
 
 const PADDING = 50
-
-type Bounds = {
-  minX: number
-  minY: number
-  maxX: number
-  maxY: number
-}
-
-const getBounds = (nodeViews: NodeView[]): Bounds => {
-  let minX: number = Number.POSITIVE_INFINITY
-  let minY: number = Number.POSITIVE_INFINITY
-  let maxX: number = Number.NEGATIVE_INFINITY
-  let maxY: number = Number.NEGATIVE_INFINITY
-
-  let idx: number = nodeViews.length
-  while (idx--) {
-    const nv: NodeView = nodeViews[idx]
-    const x = nv.position[0]
-    const y = nv.position[1]
-
-    if (x <= minX) {
-      minX = x
-    }
-    if (y <= minY) {
-      minY = y
-    }
-    if (x >= maxX) {
-      maxX = x
-    }
-    if (y >= maxY) {
-      maxY = y
-    }
-  }
-
-  const newBounds: Bounds = {
-    minX,
-    minY,
-    maxX,
-    maxY
-  }
-
-  return newBounds
-}
-
-const DEF_EVENT_HANDLER: EventHandlers = {
-  onNodeClick: (event, x, y): void => {
-    console.log('* Default click handler: node', event, x, y)
-  },
-  onEdgeClick: (event, x, y): void => {
-    console.log('* Default click handler: edge', event, x, y)
-  },
-  onNodeMouseover: (event): void => {
-    // console.log('* Mouse over: node', event)
-  },
-  onEdgeMouseover: (event): void => {
-    // console.log('* Mouse over: edge', event)
-  },
-  onBackgroundClick: (event): void => {
-    console.log('* BG click event')
-  }
-}
 
 type ViewportSize = {
   width: number
@@ -223,8 +159,9 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
 
   const [selectionStart, setSelectionStart] = useState<[number, number]>([0, 0])
   const [selectionPoint, setSelectionPoint] = useState<[number, number]>([0, 0])
-  const [selectionBounds, setSelectionBounds] =
-    useState<[number, number, number, number] | null>(null)
+  const [selectionBounds, setSelectionBounds] = useState<[number, number, number, number] | null>(
+    null
+  )
 
   // const [isBoxSelection, setIsBoxSelection] = useState<boolean>(false)
 
@@ -234,7 +171,8 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
   const [edgeLayerGroups, setEdgeLayerGroups] = useState(emptyLayers)
 
   const [spatialIndex, setSpatialIndex] = useState(null)
-  const [edgeIndex, setEdgeIndex] = useState(null)
+  const [edgeSourceIndex, setEdgeSourceIndex] = useState(null)
+  const [edgeTargetIndex, setEdgeTargetIndex] = useState(null)
 
   useEffect(() => {
     const deckGlRef = deck.current
@@ -413,10 +351,20 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
         const p1 = viewport.unproject([x, y])
         const p2 = viewport.unproject([x + width, y + height])
         let result = spatialIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => nvList[i])
-        const result2 = edgeIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
+        const edgeS = edgeSourceIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
+        const edgeT = edgeTargetIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
 
-        result = [...result, ...result2]
-        console.log('nodesIN4===', result, info)
+        const nodeIds: Set<string> = new Set<string>(result.map(node => node.id))
+        const allEdges: EdgeView[] = [...edgeS, ...edgeT]
+
+        const selectedEdges = new Set()
+        allEdges.forEach(e => {
+          if(nodeIds.has(e.s) && nodeIds.has(e.t)) {
+            selectedEdges.add(e)
+          }
+        })
+        result = [...result, ...selectedEdges]
+        console.log('nodesIN5===', nodeIds, allEdges, result, info)
         // const newSelection = deckRef.pickObjects({x, y, width, height})
 
         // let selectedLen = newSelection.length
@@ -472,19 +420,16 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
       }}
       onLoad={() => {
         console.log('------------------ Loaded ------------', graphView)
-        setSpatialIndex(initSpatialIndex(graphView))
-        const {edgeViews} = graphView
-        const edgeViewList: EdgeView[] = [...edgeViews.values()]
-        setEdgeIndex(initEdgeIndex(nodeViews, edgeViewList))
+        const indices: SpatialIndices = initSpatialIndex(graphView, nodeViews)
+        setSpatialIndex(indices.nodeIndex)
+        setEdgeSourceIndex(indices.edgeSourceIndex)
+        setEdgeTargetIndex(indices.edgeTargetIndex)
 
         handleLoad(deckRef, graphView)
       }}
       onAfterRender={() => {}}
     >
-      {({x, y, width, height, viewState, viewport}) => {
-        const unpro = viewport.unproject([x, y])
-        console.log('UNPRO Loaded ------------', unpro, x, y, width, height, viewState, viewport)
-      }}
+      {({x, y, width, height, viewState, viewport}) => {}}
     </DeckGL>
   )
 }
