@@ -5,7 +5,7 @@ import GraphLayer from '../../layers/GraphLayer'
 import GraphLayerProps from '../../layers/GraphLayerProps'
 import RendererProps from './RendererProps'
 import EventHandlers from '../../layers/EventHandlers'
-import {createEdgeLayers, createMultipleLayers} from '../../layers/EdgeLayer'
+import {createMultipleLayers} from '../../layers/EdgeLayer'
 
 import NodeView from '../../models/NodeView'
 import EdgeView from '../../models/EdgeView'
@@ -15,14 +15,17 @@ import {getArea, SpatialIndices, initSpatialIndex} from '../../utils/selection-u
 import {Bounds, getBounds} from '../../utils/bounds-util'
 import {DEF_EVENT_HANDLER} from './EventHandlers'
 
+// Background color when it is not available
 const DEF_BG_COLOR = '#555555'
 
+// Padding to be used when executing fit function
+const PADDING = 50
+
+// Style for the area for network view
 const baseStyle = {
   backgroundColor: DEF_BG_COLOR,
   position: 'relative'
 }
-
-const PADDING = 50
 
 type ViewportSize = {
   width: number
@@ -44,6 +47,7 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
   onBackgroundClick,
   onNodeMouseover,
   onEdgeMouseover,
+  onSelect,
   backgroundColor = DEF_BG_COLOR,
   pickable = true,
   setDeckglReference = (deckRef) => {
@@ -133,12 +137,8 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
     commandProxy(proxy)
   }
 
-  // Viewport size
-  const [viewportSize, setViewportSize] = useState<ViewportSize>({width: 0, height: 0})
-
-  const handleResize = (size: ViewportSize, nodeViews: NodeView[]): void => {
+  const handleResize = (): void => {
     if (bounds !== null) {
-      setViewportSize(size)
       const bounds: Bounds = getBounds(nodeViewList)
       setBounds(bounds)
     }
@@ -237,7 +237,9 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
     onNodeMouseover:
       onNodeMouseover === undefined ? DEF_EVENT_HANDLER.onNodeMouseover : onNodeMouseover,
     onEdgeMouseover:
-      onEdgeMouseover === undefined ? DEF_EVENT_HANDLER.onEdgeMouseover : onEdgeMouseover
+      onEdgeMouseover === undefined ? DEF_EVENT_HANDLER.onEdgeMouseover : onEdgeMouseover,
+    onSelect:
+      onSelect === undefined ? DEF_EVENT_HANDLER.onSelect : onSelect
   }
 
   const {nodeViews} = graphView
@@ -288,6 +290,8 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
       setIsShiftDown(false)
     }
   }
+
+  const _handleBoxSelect = () => {}
 
   return (
     <DeckGL
@@ -354,12 +358,12 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
         const edgeS = edgeSourceIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
         const edgeT = edgeTargetIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
 
-        const nodeIds: Set<string> = new Set<string>(result.map(node => node.id))
+        const nodeIds: Set<string> = new Set<string>(result.map((node) => node.id))
         const allEdges: EdgeView[] = [...edgeS, ...edgeT]
 
         const selectedEdges = new Set()
-        allEdges.forEach(e => {
-          if(nodeIds.has(e.s) && nodeIds.has(e.t)) {
+        allEdges.forEach((e) => {
+          if (nodeIds.has(e.s) && nodeIds.has(e.t)) {
             selectedEdges.add(e)
           }
         })
@@ -371,26 +375,34 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
         let selectedLen = result.length
         // console.log('---------->>>>End Selection: end len', selectedLen, x2, y2, area)
 
-        const selectedNodeIds = new Set<string>()
-        const selectedEdgeIds = new Set<string>()
+        const selectedN = new Set<NodeView>()
+        const selectedE = new Set<EdgeView>()
+        const nId = new Set<string>()
+        const eId = new Set<string>()
         while (selectedLen--) {
           const item = result[selectedLen]
           if (item.position !== undefined) {
-            selectedNodeIds.add(item.id)
+            selectedN.add(item)
+            nId.add(item.id)
           } else {
-            selectedEdgeIds.add(item.id)
+            selectedE.add(item)
+            eId.add(item.id)
           }
         }
-        setSelectedNodes(selectedNodeIds)
-        setSelectedEdges(selectedEdgeIds)
+        const nvArray: NodeView[] = [...selectedN]
+        const evArray: EdgeView[] = [...selectedE]
+        eventHandlers.onSelect(nvArray, evArray)
+        
+        setSelectedNodes(nId)
+        setSelectedEdges(eId)
 
-        console.log(
-          '---------->>>>Selected 2',
-          layerProps.edgeViews,
-          selectedNodeIds,
-          selectedEdgeIds
-          // newSelection
-        )
+        // console.log(
+        //   '---------->>>>Selected 2',
+        //   layerProps.edgeViews,
+        //   selectedNodeIds,
+        //   selectedEdgeIds
+        //   // newSelection
+        // )
         setSelectionBounds(null)
         setIsShiftDown(false)
 
@@ -416,7 +428,7 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
         setSelectionBounds(null)
       }}
       onResize={(size) => {
-        handleResize(size, nodeViewList)
+        handleResize()
       }}
       onLoad={() => {
         console.log('------------------ Loaded ------------', graphView)

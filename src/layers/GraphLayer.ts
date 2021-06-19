@@ -25,7 +25,6 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
     if (mode === 'query' && currentProps.multipleSelection === false) {
       // @ts-ignore
       const {onNodeClick, onEdgeClick} = currentProps.eventHandlers
-      console.log('PICK info called::', pickingInfo)
       const isNode = info.object.position ? true : false
 
       if (isNode) {

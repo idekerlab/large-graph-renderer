@@ -81,9 +81,10 @@ const initNodeIndex = (nodeViews: NodeView[]): any => {
     const nv: NodeView = nodeViews[i]
     const x: number = nv.position[0]
     const y: number = nv.position[1]
-    const size: number = nv.size
-    const delta: number = size / 2
-    index.add(x - delta, y - delta, x + delta, y + delta)
+    // const size: number = nv.size
+    // const delta: number = size / 2
+    index.add(x, y, x, y)
+    // index.add(x - delta, y - delta, x + delta, y + delta)
   }
   index.finish()
 

@@ -13,8 +13,11 @@ export const DEF_EVENT_HANDLER: EventHandlers = {
   onEdgeMouseover: (event): void => {
     // console.log('* Mouse over: edge', event)
   },
-  onBackgroundClick: (event): void => {
+  onBackgroundClick: (layer: any, object: any): void => {
     console.log('* BG click event')
+  },
+  onSelect: (nodes: any[], edges: any[]): void => {
+    console.log('* Selected', nodes, edges)
   }
 }
 

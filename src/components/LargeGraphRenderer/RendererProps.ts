@@ -1,3 +1,5 @@
+import EdgeView from '../../models/EdgeView'
+import NodeView from '../../models/NodeView'
 import GraphView from '../../models/GraphView'
 
 interface RendererProps {
@@ -13,6 +15,7 @@ interface RendererProps {
   onBackgroundClick?: (event: any) => void
   onNodeMouseover?: (event: any) => void
   onEdgeMouseover?: (event: any) => void
+  onSelect?: (selectedNodes: NodeView[], selectedEdges: EdgeView[]) => void
 
   // TODO: how should this handle command, such as "fit content??"
 
