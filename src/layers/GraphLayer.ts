@@ -27,6 +27,7 @@ class GraphLayer extends CompositeLayer<GraphLayerProps> {
       const {onNodeClick, onEdgeClick} = currentProps.eventHandlers
       const isNode = info.object.position ? true : false
 
+      console.log('CLK event:', info, mode)
       if (isNode) {
         onNodeClick(info.object, info.x, info.y)
         info.object.selected = true

@@ -396,13 +396,6 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
         setSelectedNodes(nId)
         setSelectedEdges(eId)
 
-        // console.log(
-        //   '---------->>>>Selected 2',
-        //   layerProps.edgeViews,
-        //   selectedNodeIds,
-        //   selectedEdgeIds
-        //   // newSelection
-        // )
         setSelectionBounds(null)
         setIsShiftDown(false)
 
@@ -424,14 +417,13 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
         setDataUpdated(!dataUpdated)
       }}
       onDblClick={(layer, object) => {
-        console.log('## DBL:', layer, object)
         setSelectionBounds(null)
       }}
       onResize={(size) => {
         handleResize()
       }}
       onLoad={() => {
-        console.log('------------------ Loaded ------------', graphView)
+        console.info('LGR ready:', graphView)
         const indices: SpatialIndices = initSpatialIndex(graphView, nodeViews)
         setSpatialIndex(indices.nodeIndex)
         setEdgeSourceIndex(indices.edgeSourceIndex)
