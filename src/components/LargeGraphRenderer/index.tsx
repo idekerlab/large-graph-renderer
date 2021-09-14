@@ -278,20 +278,18 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
   }
 
   const _handleKeyDown = (event) => {
-    console.log('Key DOWN', event)
-    if (event.key === 'Shift') {
+    console.log('Key DOWN 3', event)
+    if (event.shiftKey || event.metaKey) {
       setIsShiftDown(true)
     }
   }
 
   const _handleKeyUp = (event) => {
-    console.log('Key UP', event)
-    if (event.key === 'Shift') {
+    console.log('Key UP 2', event)
+    if (event.shiftKey || event.metaKey) {
       setIsShiftDown(false)
     }
   }
-
-  const _handleBoxSelect = () => {}
 
   return (
     <DeckGL
