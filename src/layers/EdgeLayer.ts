@@ -30,14 +30,16 @@ const create2DLayer = (
     },
 
     getColor: (e: EdgeView) => (selectedEdges.has(e.id) ? [255, 255, 0, 225] : e.color),
-    getWidth: (e: EdgeView) => (selectedEdges.has(e.id) ? e.width * 3 : e.width),
+    getWidth: (e: EdgeView) => (selectedEdges.has(e.id) ? e.width*1.3 : e.width),
     updateTriggers: {
       getColor: updated,
       getWidth: updated
     },
     visible: showEdges,
     pickable,
-    widthScale: 1,
+    widthScale: 0.16,
+    widthMinPixels: 1,
+    widthMaxPixels: 10,
     autoHighlight: true,
     highlightColor: [255, 0, 0]
   })
