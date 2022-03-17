@@ -1,7 +1,7 @@
 {
   "name": "large-graph-renderer",
   "description": "LGR: simple graph rendering engine for large graph data based on Deck.gl",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "author": "Keiichiro Ono <kono@ucsd.edu>",
   "license": "MIT",
   "keywords": [
