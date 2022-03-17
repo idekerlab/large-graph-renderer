@@ -353,11 +353,15 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
         const p1 = viewport.unproject([x, y])
         const p2 = viewport.unproject([x + width, y + height])
         let result = spatialIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => nvList[i])
-        const edgeS = edgeSourceIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
-        const edgeT = edgeTargetIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
 
+
+        let allEdges: EdgeView[] = []
+        if(edgeSourceIndex !== null && edgeTargetIndex !== null) {
+          const edgeS = edgeSourceIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
+          const edgeT = edgeTargetIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
+          allEdges = [...edgeS, ...edgeT]
+        }
         const nodeIds: Set<string> = new Set<string>(result.map((node) => node.id))
-        const allEdges: EdgeView[] = [...edgeS, ...edgeT]
 
         const selectedEdges = new Set()
         allEdges.forEach((e) => {
@@ -366,7 +370,6 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
           }
         })
         result = [...result, ...selectedEdges]
-        console.log('nodesIN5===', nodeIds, allEdges, result, info)
         // const newSelection = deckRef.pickObjects({x, y, width, height})
 
         // let selectedLen = newSelection.length

@@ -61,6 +61,7 @@ export const initSpatialIndex = (
   const edgeViewList: EdgeView[] = [...edgeViews.values()]
 
   const nodeIndex = initNodeIndex(nodeViewList)
+
   const edgeIndices = initEdgeIndex(nodeViewMap, edgeViewList)
 
   const indices: SpatialIndices = {
@@ -96,6 +97,10 @@ const initEdgeIndex = (
   edgeViews: EdgeView[]
 ): [any, any] => {
   const numEdges = edgeViews.length
+  if(numEdges === 0) {
+    // Returns null indecies if no edge exists.
+    return [null, null]
+  }
   // Spatial Index
   const sIndex = new Flatbush(numEdges)
   const tIndex = new Flatbush(numEdges)
