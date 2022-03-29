@@ -1,4 +1,11 @@
-import React, {VFC, useState, useEffect, useRef, useMemo, useCallback} from 'react'
+import React, {
+  VFC,
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback
+} from 'react'
 import DeckGL from '@deck.gl/react'
 import {OrthographicView, OrbitView, LinearInterpolator} from '@deck.gl/core'
 import GraphLayer from '../../layers/GraphLayer'
@@ -11,7 +18,11 @@ import NodeView from '../../models/NodeView'
 import EdgeView from '../../models/EdgeView'
 import GraphView from '../../models/GraphView'
 import CommandProxy from './CommandProxy'
-import {getArea, SpatialIndices, initSpatialIndex} from '../../utils/selection-util'
+import {
+  getArea,
+  SpatialIndices,
+  initSpatialIndex
+} from '../../utils/selection-util'
 import {Bounds, getBounds} from '../../utils/bounds-util'
 import {DEF_EVENT_HANDLER} from './EventHandlers'
 
@@ -58,7 +69,12 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
   // For using low-level API
   const deck = useRef(null)
   const [deckRef, setDeckRef] = useState(null)
-  const [bounds, setBounds] = useState<Bounds>({minX: 0, minY: 0, maxX: 0, maxY: 0})
+  const [bounds, setBounds] = useState<Bounds>({
+    minX: 0,
+    minY: 0,
+    maxX: 0,
+    maxY: 0
+  })
 
   const [initialViewState2, setInitialViewState2] = useState({
     target: [6000, 0, 0],
@@ -72,23 +88,37 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
 
   const fitContent2 = () => {
     const deckGlInstance = deckRef.deck
+
+    // Size of the viewport (visible area)
     const {width, height} = deckGlInstance
+
+    // Width and height of the actual network view
     const networkWidth: number = bounds.maxX - bounds.minX
     const networkHeight: number = bounds.maxY - bounds.minY
+
+    // Displacement to move the netowrk to the center
+    // let deltaX = (Math.abs(bounds.maxX) - Math.abs(bounds.minX)) / 2
+    // let deltaY = (Math.abs(bounds.maxY) - Math.abs(bounds.minY)) / 2
+    
+    // if (networkWidth >= networkHeight) {
+    //   deltaY = deltaY + bounds.maxY - networkHeight
+    // }
+
+    const deltaX = bounds.maxX - networkWidth/2
+    const deltaY = bounds.maxY - networkHeight/2
+    
+    // Ratio of view port to actual network area w/ padding
     const wRatio: number = (networkWidth + PADDING) / width
     const hRatio: number = (networkHeight + PADDING) / height
 
-    // Case 1: width is larger than height of network --> Fit to width
     let scalingFactor = 0
     if (networkWidth >= networkHeight) {
+      // Case 1: width is larger than height of network --> Fit to width
       scalingFactor = -Math.log2(wRatio)
     } else {
       // Case 2: height is larger than width --> fit to height
       scalingFactor = -Math.log2(hRatio)
     }
-
-    const deltaX = (Math.abs(bounds.maxX) - Math.abs(bounds.minX)) / 2
-    const deltaY = (Math.abs(bounds.maxY) - Math.abs(bounds.minY)) / 2
 
     setInitialViewState2({
       target: [deltaX, deltaY, 0],
@@ -149,8 +179,12 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
   const [disableClick, setDisableClick] = useState<boolean>(false)
   //
   const [dataUpdated, setDataUpdated] = useState<boolean>(false)
-  const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set<string>())
-  const [selectedEdges, setSelectedEdges] = useState<Set<string>>(new Set<string>())
+  const [selectedNodes, setSelectedNodes] = useState<Set<string>>(
+    new Set<string>()
+  )
+  const [selectedEdges, setSelectedEdges] = useState<Set<string>>(
+    new Set<string>()
+  )
   // For performance, show/hide edges/labels dynamically
 
   const [showEdges, setShowEdges] = useState(true)
@@ -159,9 +193,9 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
 
   const [selectionStart, setSelectionStart] = useState<[number, number]>([0, 0])
   const [selectionPoint, setSelectionPoint] = useState<[number, number]>([0, 0])
-  const [selectionBounds, setSelectionBounds] = useState<[number, number, number, number] | null>(
-    null
-  )
+  const [selectionBounds, setSelectionBounds] = useState<
+    [number, number, number, number] | null
+  >(null)
 
   // const [isBoxSelection, setIsBoxSelection] = useState<boolean>(false)
 
@@ -230,16 +264,23 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
   }
 
   const eventHandlers: EventHandlers = {
-    onNodeClick: onNodeClick === undefined ? DEF_EVENT_HANDLER.onNodeClick : onNodeClick,
-    onEdgeClick: onEdgeClick === undefined ? DEF_EVENT_HANDLER.onEdgeClick : onEdgeClick,
+    onNodeClick:
+      onNodeClick === undefined ? DEF_EVENT_HANDLER.onNodeClick : onNodeClick,
+    onEdgeClick:
+      onEdgeClick === undefined ? DEF_EVENT_HANDLER.onEdgeClick : onEdgeClick,
     onBackgroundClick:
-      onBackgroundClick === undefined ? DEF_EVENT_HANDLER.onBackgroundClick : onBackgroundClick,
+      onBackgroundClick === undefined
+        ? DEF_EVENT_HANDLER.onBackgroundClick
+        : onBackgroundClick,
     onNodeMouseover:
-      onNodeMouseover === undefined ? DEF_EVENT_HANDLER.onNodeMouseover : onNodeMouseover,
+      onNodeMouseover === undefined
+        ? DEF_EVENT_HANDLER.onNodeMouseover
+        : onNodeMouseover,
     onEdgeMouseover:
-      onEdgeMouseover === undefined ? DEF_EVENT_HANDLER.onEdgeMouseover : onEdgeMouseover,
-    onSelect:
-      onSelect === undefined ? DEF_EVENT_HANDLER.onSelect : onSelect
+      onEdgeMouseover === undefined
+        ? DEF_EVENT_HANDLER.onEdgeMouseover
+        : onEdgeMouseover,
+    onSelect: onSelect === undefined ? DEF_EVENT_HANDLER.onSelect : onSelect
   }
 
   const {nodeViews} = graphView
@@ -352,16 +393,23 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
         const evList: EdgeView[] = [...edgeViews.values()]
         const p1 = viewport.unproject([x, y])
         const p2 = viewport.unproject([x + width, y + height])
-        let result = spatialIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => nvList[i])
-
+        let result = spatialIndex
+          .search(p1[0], p1[1], p2[0], p2[1])
+          .map((i) => nvList[i])
 
         let allEdges: EdgeView[] = []
-        if(edgeSourceIndex !== null && edgeTargetIndex !== null) {
-          const edgeS = edgeSourceIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
-          const edgeT = edgeTargetIndex.search(p1[0], p1[1], p2[0], p2[1]).map((i) => evList[i])
+        if (edgeSourceIndex !== null && edgeTargetIndex !== null) {
+          const edgeS = edgeSourceIndex
+            .search(p1[0], p1[1], p2[0], p2[1])
+            .map((i) => evList[i])
+          const edgeT = edgeTargetIndex
+            .search(p1[0], p1[1], p2[0], p2[1])
+            .map((i) => evList[i])
           allEdges = [...edgeS, ...edgeT]
         }
-        const nodeIds: Set<string> = new Set<string>(result.map((node) => node.id))
+        const nodeIds: Set<string> = new Set<string>(
+          result.map((node) => node.id)
+        )
 
         const selectedEdges = new Set()
         allEdges.forEach((e) => {
@@ -393,7 +441,7 @@ const LargeGraphRenderer: VFC<RendererProps> = ({
         const nvArray: NodeView[] = [...selectedN]
         const evArray: EdgeView[] = [...selectedE]
         eventHandlers.onSelect(nvArray, evArray)
-        
+
         setSelectedNodes(nId)
         setSelectedEdges(eId)
 
